@@ -43,3 +43,10 @@ export async function clearAdminSession() {
 export function verifyPassword(password: string): boolean {
   return password === process.env.ADMIN_PASSWORD
 }
+
+export function verifyBotApiKey(apiKey: string | null): boolean {
+  if (!apiKey) return false
+  const validKey = process.env.BOT_API_KEY
+  if (!validKey) return false
+  return apiKey === validKey
+}
