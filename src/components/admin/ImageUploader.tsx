@@ -1,8 +1,8 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { Upload, Image as AntImage, Button, Spin, App, Space } from 'antd'
-import { DeleteOutlined, LoadingOutlined, PlusOutlined } from '@ant-design/icons'
+import { DeleteOutlined, LoadingOutlined, PlusOutlined, CloudUploadOutlined } from '@ant-design/icons'
 import type { UploadProps } from 'antd'
 import type { ImageData } from '@/types/database'
 
@@ -16,9 +16,13 @@ export function ImageUploader({ value = [], onChange, maxCount = 9 }: ImageUploa
   const { message } = App.useApp()
   const [uploading, setUploading] = useState(false)
   const [uploadingCount, setUploadingCount] = useState(0)
+  const [isDragging, setIsDragging] = useState(false)
   const pendingImagesRef = useRef<ImageData[]>([])
   const valueRef = useRef<ImageData[]>(value)
   const onChangeRef = useRef(onChange)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const handleUploadRef = useRef<(file: File) => void>(() => {})
+  const dragCounterRef = useRef(0)
 
   // 保持 ref 同步
   useEffect(() => {
@@ -31,6 +35,18 @@ export function ImageUploader({ value = [], onChange, maxCount = 9 }: ImageUploa
 
   const isFull = value.length >= maxCount
   const isDisabled = uploading || isFull
+
+  // 完成上传后的回调处理
+  const flushPendingImages = useCallback(() => {
+    if (pendingImagesRef.current.length > 0) {
+      const newImages = [...valueRef.current, ...pendingImagesRef.current]
+      pendingImagesRef.current = []
+      // 使用 queueMicrotask 避免在渲染期间更新状态
+      queueMicrotask(() => {
+        onChangeRef.current?.(newImages)
+      })
+    }
+  }, [])
 
   const handleUpload = async (file: File) => {
     if (isFull) {
@@ -77,16 +93,111 @@ export function ImageUploader({ value = [], onChange, maxCount = 9 }: ImageUploa
         // 当所有文件都上传完成时，一次性更新
         if (newCount === 0) {
           setUploading(false)
-          if (pendingImagesRef.current.length > 0) {
-            // 使用 ref 获取最新的 value
-            onChangeRef.current?.([...valueRef.current, ...pendingImagesRef.current])
-            pendingImagesRef.current = []
-          }
+          flushPendingImages()
         }
         return newCount
       })
     }
   }
+
+  // 保持 handleUpload ref 同步
+  useEffect(() => {
+    handleUploadRef.current = handleUpload
+  })
+
+  // 处理粘贴事件
+  const handlePaste = useCallback((e: ClipboardEvent) => {
+    if (valueRef.current.length >= maxCount || uploading) return
+
+    const items = e.clipboardData?.items
+    if (!items) return
+
+    const imageFiles: File[] = []
+    for (let i = 0; i < items.length; i++) {
+      const item = items[i]
+      if (item.type.startsWith('image/')) {
+        const file = item.getAsFile()
+        if (file) {
+          imageFiles.push(file)
+        }
+      }
+    }
+
+    if (imageFiles.length > 0) {
+      e.preventDefault()
+      imageFiles.forEach(file => {
+        // 粘贴的图片没有文件名，生成一个
+        const ext = file.type.split('/')[1] || 'png'
+        const newFile = new File([file], `pasted-image-${Date.now()}.${ext}`, { type: file.type })
+        handleUploadRef.current(newFile)
+      })
+    }
+  }, [maxCount, uploading])
+
+  // 监听全局粘贴事件
+  useEffect(() => {
+    document.addEventListener('paste', handlePaste)
+    return () => {
+      document.removeEventListener('paste', handlePaste)
+    }
+  }, [handlePaste])
+
+  // 拖拽事件处理
+  const handleDragEnter = useCallback((e: DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    dragCounterRef.current++
+    if (e.dataTransfer?.types.includes('Files')) {
+      setIsDragging(true)
+    }
+  }, [])
+
+  const handleDragLeave = useCallback((e: DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    dragCounterRef.current--
+    if (dragCounterRef.current === 0) {
+      setIsDragging(false)
+    }
+  }, [])
+
+  const handleDragOver = useCallback((e: DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+  }, [])
+
+  const handleDrop = useCallback((e: DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    dragCounterRef.current = 0
+    setIsDragging(false)
+
+    if (valueRef.current.length >= maxCount || uploading) return
+
+    const files = e.dataTransfer?.files
+    if (!files) return
+
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i]
+      if (file.type.startsWith('image/')) {
+        handleUploadRef.current(file)
+      }
+    }
+  }, [maxCount, uploading])
+
+  // 监听全局拖拽事件
+  useEffect(() => {
+    document.addEventListener('dragenter', handleDragEnter)
+    document.addEventListener('dragleave', handleDragLeave)
+    document.addEventListener('dragover', handleDragOver)
+    document.addEventListener('drop', handleDrop)
+    return () => {
+      document.removeEventListener('dragenter', handleDragEnter)
+      document.removeEventListener('dragleave', handleDragLeave)
+      document.removeEventListener('dragover', handleDragOver)
+      document.removeEventListener('drop', handleDrop)
+    }
+  }, [handleDragEnter, handleDragLeave, handleDragOver, handleDrop])
 
   const uploadProps: UploadProps = {
     name: 'file',
@@ -121,11 +232,45 @@ export function ImageUploader({ value = [], onChange, maxCount = 9 }: ImageUploa
   }
 
   return (
-    <div style={{
-      display: 'grid',
-      gridTemplateColumns: 'repeat(5, 1fr)',
-      gap: 12,
-    }}>
+    <div
+      ref={containerRef}
+      style={{
+        position: 'relative',
+        display: 'grid',
+        gridTemplateColumns: 'repeat(5, 1fr)',
+        gap: 12,
+      }}
+    >
+      {/* 拖拽遮罩层 */}
+      {isDragging && !isFull && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'rgba(168, 85, 247, 0.15)',
+            backdropFilter: 'blur(4px)',
+            zIndex: 1000,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            border: '3px dashed #a855f7',
+            pointerEvents: 'none',
+          }}
+        >
+          <CloudUploadOutlined style={{ fontSize: 64, color: '#a855f7' }} />
+          <span style={{ marginTop: 16, fontSize: 18, color: '#a855f7', fontWeight: 500 }}>
+            释放鼠标上传图片
+          </span>
+          <span style={{ marginTop: 8, fontSize: 14, color: 'rgba(168, 85, 247, 0.7)' }}>
+            支持 PNG、JPG、GIF、WebP 格式
+          </span>
+        </div>
+      )}
+
       {/* 已上传图片列表 */}
       {value.map((img, index) => (
         <div
@@ -239,7 +384,7 @@ export function ImageUploader({ value = [], onChange, maxCount = 9 }: ImageUploa
               <>
                 <PlusOutlined style={{ fontSize: 28, color: isDisabled ? 'rgba(168, 85, 247, 0.3)' : '#a855f7' }} />
                 <span style={{ marginTop: 8, fontSize: 12, color: isDisabled ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.45)' }}>
-                  {isFull ? '已满' : '添加'}
+                  {isFull ? '已满' : '点击或粘贴'}
                 </span>
               </>
             )}
