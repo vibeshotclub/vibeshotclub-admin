@@ -1,8 +1,7 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
-import { Form, Input, Select, Switch, Button, Space, Card, Tag, App, Divider } from 'antd'
-import { SaveOutlined, CloseOutlined, StarOutlined, EyeOutlined } from '@ant-design/icons'
+import { Form, Input, Select, Switch, Card, Tag, App, Space } from 'antd'
+import { StarOutlined, EyeOutlined } from '@ant-design/icons'
 import { ImageUploader } from './ImageUploader'
 import { useTags } from '@/hooks/useTags'
 import { useModels } from '@/hooks/useModels'
@@ -14,6 +13,7 @@ interface PromptFormProps {
   prompt?: PromptWithTags
   onSubmit: (data: PromptFormData) => Promise<void>
   isSubmitting?: boolean
+  formId?: string
 }
 
 const sourceOptions = [
@@ -22,8 +22,7 @@ const sourceOptions = [
   { value: 'twitter', label: 'X/Twitter' },
 ]
 
-export function PromptForm({ prompt, onSubmit, isSubmitting }: PromptFormProps) {
-  const router = useRouter()
+export function PromptForm({ prompt, onSubmit, isSubmitting, formId = 'prompt-form' }: PromptFormProps) {
   const { message } = App.useApp()
   const { tagsByType } = useTags()
   const { grouped: modelGroups } = useModels()
@@ -78,6 +77,7 @@ export function PromptForm({ prompt, onSubmit, isSubmitting }: PromptFormProps) 
 
   return (
     <Form
+      id={formId}
       form={form}
       layout="vertical"
       initialValues={initialValues}
@@ -237,27 +237,6 @@ export function PromptForm({ prompt, onSubmit, isSubmitting }: PromptFormProps) 
           </Card>
         </div>
       </div>
-
-      {/* Actions */}
-      <Divider />
-      <Space>
-        <Button
-          type="primary"
-          htmlType="submit"
-          icon={<SaveOutlined />}
-          loading={isSubmitting}
-          size="large"
-        >
-          {prompt ? '保存修改' : '创建提示词'}
-        </Button>
-        <Button
-          icon={<CloseOutlined />}
-          onClick={() => router.back()}
-          size="large"
-        >
-          取消
-        </Button>
-      </Space>
     </Form>
   )
 }

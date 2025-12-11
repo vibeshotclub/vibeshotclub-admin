@@ -18,6 +18,7 @@ const { Sider, Content } = Layout
 
 interface AdminLayoutProps {
   children: React.ReactNode
+  bottomBar?: React.ReactNode
 }
 
 const menuItems = [
@@ -38,7 +39,7 @@ const menuItems = [
   },
 ]
 
-export function AdminLayout({ children }: AdminLayoutProps) {
+export function AdminLayout({ children, bottomBar }: AdminLayoutProps) {
   const { isAuthenticated, isLoading, logout } = useAuth()
   const router = useRouter()
   const pathname = usePathname()
@@ -178,6 +179,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
       }}>
         <Content style={{
           margin: 24,
+          marginBottom: bottomBar ? 80 : 24,
           padding: 24,
           minHeight: 280,
           background: 'rgba(20, 20, 30, 0.6)',
@@ -187,6 +189,23 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         }}>
           {children}
         </Content>
+
+        {bottomBar && (
+          <div style={{
+            position: 'fixed',
+            bottom: 0,
+            left: collapsed ? 72 : 220,
+            right: 0,
+            padding: '16px 48px',
+            background: 'rgba(20, 20, 30, 0.95)',
+            backdropFilter: 'blur(10px)',
+            borderTop: '1px solid rgba(168, 85, 247, 0.2)',
+            zIndex: 100,
+            transition: 'left 0.2s',
+          }}>
+            {bottomBar}
+          </div>
+        )}
       </Layout>
     </Layout>
   )

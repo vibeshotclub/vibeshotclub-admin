@@ -2,7 +2,8 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Typography, App } from 'antd'
+import { Typography, App, Button, Space } from 'antd'
+import { SaveOutlined, CloseOutlined } from '@ant-design/icons'
 import { AdminLayout } from '@/components/admin/AdminLayout'
 import { PromptForm } from '@/components/admin/PromptForm'
 import { usePrompts } from '@/hooks/usePrompts'
@@ -29,8 +30,32 @@ export default function NewPromptPage() {
     }
   }
 
+  const actionButtons = (
+    <Space size="middle">
+      <Button
+        type="primary"
+        form="prompt-form"
+        htmlType="submit"
+        icon={<SaveOutlined />}
+        loading={isSubmitting}
+        size="large"
+        style={{ minWidth: 140 }}
+      >
+        创建提示词
+      </Button>
+      <Button
+        icon={<CloseOutlined />}
+        onClick={() => router.back()}
+        size="large"
+        style={{ minWidth: 140 }}
+      >
+        取消
+      </Button>
+    </Space>
+  )
+
   return (
-    <AdminLayout>
+    <AdminLayout bottomBar={actionButtons}>
       <div style={{ marginBottom: 24 }}>
         <Title level={2} style={{ margin: 0 }}>添加提示词</Title>
         <Text type="secondary">上传图片并添加提示词到库中</Text>

@@ -2,7 +2,8 @@
 
 import { useState, use } from 'react'
 import { useRouter } from 'next/navigation'
-import { Typography, Spin, Result, App } from 'antd'
+import { Typography, Spin, Result, App, Button, Space } from 'antd'
+import { SaveOutlined, CloseOutlined } from '@ant-design/icons'
 import { AdminLayout } from '@/components/admin/AdminLayout'
 import { PromptForm } from '@/components/admin/PromptForm'
 import { usePrompt, usePrompts } from '@/hooks/usePrompts'
@@ -57,8 +58,32 @@ export default function EditPromptPage({
     )
   }
 
+  const actionButtons = (
+    <Space size="middle">
+      <Button
+        type="primary"
+        form="prompt-form"
+        htmlType="submit"
+        icon={<SaveOutlined />}
+        loading={isSubmitting}
+        size="large"
+        style={{ minWidth: 140 }}
+      >
+        保存修改
+      </Button>
+      <Button
+        icon={<CloseOutlined />}
+        onClick={() => router.back()}
+        size="large"
+        style={{ minWidth: 140 }}
+      >
+        取消
+      </Button>
+    </Space>
+  )
+
   return (
-    <AdminLayout>
+    <AdminLayout bottomBar={actionButtons}>
       <div style={{ marginBottom: 24 }}>
         <Title level={2} style={{ margin: 0 }}>编辑提示词</Title>
         <Text type="secondary">修改提示词信息</Text>
