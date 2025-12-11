@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/server'
 import { verifyAdminSession } from '@/lib/utils/auth'
 
-// PUT - 更新标签
+// PUT - 更新标签组
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -15,48 +15,42 @@ export async function PUT(
 
     const { id } = await params
     const body = await request.json()
-    const { name, type_id, color } = body
+    const { name, slug, color } = body
 
-    if (!name || !type_id) {
-      return NextResponse.json({ error: '标签名称和分组必填' }, { status: 400 })
+    if (!name || !slug) {
+      return NextResponse.json(
+        { error: '名称和标识符必填' },
+        { status: 400 }
+      )
     }
 
     const supabase = await createAdminClient()
 
-    // Get type slug for backward compatibility
-    const { data: tagType } = await supabase
-      .from('tag_types')
-      .select('slug')
-      .eq('id', type_id)
-      .single()
-
     const { data, error } = await supabase
-      .from('tags')
-      .update({
-        name,
-        type_id,
-        type: tagType?.slug || 'style',
-        color
-      })
+      .from('tag_types')
+      .update({ name, slug, color })
       .eq('id', id)
       .select()
       .single()
 
     if (error) {
       if (error.code === '23505') {
-        return NextResponse.json({ error: '标签名称已存在' }, { status: 400 })
+        return NextResponse.json(
+          { error: '名称或标识符已存在' },
+          { status: 400 }
+        )
       }
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    return NextResponse.json({ tag: data })
+    return NextResponse.json({ tagType: data })
   } catch (error) {
-    console.error('Update tag error:', error)
-    return NextResponse.json({ error: '更新标签失败' }, { status: 500 })
+    console.error('Update tag type error:', error)
+    return NextResponse.json({ error: '更新标签组失败' }, { status: 500 })
   }
 }
 
-// DELETE - 删除标签
+// DELETE - 删除标签组
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -70,7 +64,23 @@ export async function DELETE(
     const { id } = await params
     const supabase = await createAdminClient()
 
-    const { error } = await supabase.from('tags').delete().eq('id', id)
+    // Check if there are tags using this type
+    const { count } = await supabase
+      .from('tags')
+      .select('*', { count: 'exact', head: true })
+      .eq('type_id', id)
+
+    if (count && count > 0) {
+      return NextResponse.json(
+        { error: `该标签组下有 ${count} 个标签，请先删除或转移这些标签` },
+        { status: 400 }
+      )
+    }
+
+    const { error } = await supabase
+      .from('tag_types')
+      .delete()
+      .eq('id', id)
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
@@ -78,7 +88,7 @@ export async function DELETE(
 
     return NextResponse.json({ success: true })
   } catch (error) {
-    console.error('Delete tag error:', error)
-    return NextResponse.json({ error: '删除标签失败' }, { status: 500 })
+    console.error('Delete tag type error:', error)
+    return NextResponse.json({ error: '删除标签组失败' }, { status: 500 })
   }
 }

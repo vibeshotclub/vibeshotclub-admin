@@ -9,15 +9,23 @@ export async function GET() {
 
     const { data, error } = await supabase
       .from('tags')
-      .select('*')
-      .order('type')
+      .select(`
+        *,
+        tag_type:tag_types(id, name, slug, color, sort_order)
+      `)
       .order('name')
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    return NextResponse.json({ tags: data })
+    // Transform to include type from tag_type.slug for backward compatibility
+    const tags = data?.map(tag => ({
+      ...tag,
+      type: tag.tag_type?.slug || tag.type,
+    }))
+
+    return NextResponse.json({ tags })
   } catch (error) {
     console.error('Get tags error:', error)
     return NextResponse.json({ error: '获取标签失败' }, { status: 500 })
@@ -33,17 +41,29 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
-    const { name, type, color } = body
+    const { name, type_id, color } = body
 
-    if (!name || !type) {
-      return NextResponse.json({ error: '标签名称和类型必填' }, { status: 400 })
+    if (!name || !type_id) {
+      return NextResponse.json({ error: '标签名称和分组必填' }, { status: 400 })
     }
 
     const supabase = await createAdminClient()
 
+    // Get type slug for backward compatibility
+    const { data: tagType } = await supabase
+      .from('tag_types')
+      .select('slug')
+      .eq('id', type_id)
+      .single()
+
     const { data, error } = await supabase
       .from('tags')
-      .insert({ name, type, color: color || '#3b82f6' })
+      .insert({
+        name,
+        type_id,
+        type: tagType?.slug || 'style', // backward compatibility
+        color: color || '#3b82f6'
+      })
       .select()
       .single()
 

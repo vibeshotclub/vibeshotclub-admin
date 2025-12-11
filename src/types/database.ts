@@ -1,13 +1,30 @@
-export type TagType = 'style' | 'topic' | 'tool' | 'quality'
 export type PromptSource = 'manual' | 'wechat' | 'twitter'
 export type UserRole = 'guest' | 'member' | 'creator' | 'admin'
+
+// 标签组/分类
+export interface TagType {
+  id: string
+  name: string
+  slug: string
+  color: string
+  sort_order: number
+  created_at: string
+}
+
+export interface TagTypeFormData {
+  name: string
+  slug: string
+  color: string
+}
 
 export interface Tag {
   id: string
   name: string
-  type: TagType
+  type: string // slug of tag_type for backward compatibility
+  type_id: string | null
   color: string
   created_at: string
+  tag_type?: TagType // joined data
 }
 
 export interface PromptImage {
@@ -100,6 +117,6 @@ export interface PromptFormData {
 
 export interface TagFormData {
   name: string
-  type: TagType
+  type_id: string
   color: string
 }
