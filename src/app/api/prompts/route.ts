@@ -24,6 +24,12 @@ export async function GET(request: NextRequest) {
         prompt_tags (
           tag_id,
           tags (id, name, type, color)
+        ),
+        prompt_images (
+          id,
+          image_url,
+          thumbnail_url,
+          sort_order
         )
       `,
         { count: 'exact' }
@@ -58,11 +64,16 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    // Transform data to flatten tags
+    // Transform data to flatten tags and sort images
     const prompts = data?.map((prompt) => ({
       ...prompt,
       tags: prompt.prompt_tags?.map((pt: { tags: unknown }) => pt.tags) || [],
+      images: (prompt.prompt_images || []).sort(
+        (a: { sort_order: number }, b: { sort_order: number }) =>
+          a.sort_order - b.sort_order
+      ),
       prompt_tags: undefined,
+      prompt_images: undefined,
     }))
 
     // Filter by tag if needed (post-query filter for many-to-many)
@@ -104,6 +115,7 @@ export async function POST(request: NextRequest) {
       negative_prompt,
       image_url,
       thumbnail_url,
+      images,
       author_name,
       author_wechat,
       source,
@@ -113,9 +125,19 @@ export async function POST(request: NextRequest) {
       tag_ids,
     } = body
 
-    if (!title || !prompt_text || !image_url) {
+    if (!title || !prompt_text) {
       return NextResponse.json(
-        { error: '标题、提示词和图片必填' },
+        { error: '标题和提示词必填' },
+        { status: 400 }
+      )
+    }
+
+    // Check if images array is provided, else fallback to single image
+    const imageList = images?.length > 0 ? images : image_url ? [{ image_url, thumbnail_url }] : []
+
+    if (imageList.length === 0) {
+      return NextResponse.json(
+        { error: '请上传至少一张图片' },
         { status: 400 }
       )
     }
@@ -132,6 +154,9 @@ export async function POST(request: NextRequest) {
 
     const sort_order = (maxSort?.sort_order || 0) + 1
 
+    // Use first image as cover
+    const coverImage = imageList[0]
+
     // Create prompt
     const { data: prompt, error: promptError } = await supabase
       .from('prompts')
@@ -140,8 +165,8 @@ export async function POST(request: NextRequest) {
         description,
         prompt_text,
         negative_prompt,
-        image_url,
-        thumbnail_url,
+        image_url: coverImage.image_url,
+        thumbnail_url: coverImage.thumbnail_url,
         author_name,
         author_wechat,
         source: source || 'manual',
@@ -165,6 +190,20 @@ export async function POST(request: NextRequest) {
       }))
 
       await supabase.from('prompt_tags').insert(tagLinks)
+    }
+
+    // Insert images to prompt_images table
+    if (imageList.length > 0) {
+      const imageRecords = imageList.map(
+        (img: { image_url: string; thumbnail_url?: string }, index: number) => ({
+          prompt_id: prompt.id,
+          image_url: img.image_url,
+          thumbnail_url: img.thumbnail_url,
+          sort_order: index,
+        })
+      )
+
+      await supabase.from('prompt_images').insert(imageRecords)
     }
 
     return NextResponse.json({ prompt }, { status: 201 })

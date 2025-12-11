@@ -5,7 +5,7 @@ import { Form, Input, Select, Switch, Button, Space, Row, Col, Card, Tag, messag
 import { SaveOutlined, CloseOutlined, StarOutlined, EyeOutlined } from '@ant-design/icons'
 import { ImageUploader } from './ImageUploader'
 import { useTags } from '@/hooks/useTags'
-import type { PromptWithTags, PromptFormData } from '@/types/database'
+import type { PromptWithTags, PromptFormData, ImageData } from '@/types/database'
 
 const { TextArea } = Input
 
@@ -26,13 +26,21 @@ export function PromptForm({ prompt, onSubmit, isSubmitting }: PromptFormProps) 
   const { tagsByType } = useTags()
   const [form] = Form.useForm()
 
+  // 构建初始图片数组
+  const initialImages: ImageData[] = prompt?.images?.map(img => ({
+    image_url: img.image_url,
+    thumbnail_url: img.thumbnail_url || undefined,
+  })) || (prompt?.image_url ? [{
+    image_url: prompt.image_url,
+    thumbnail_url: prompt.thumbnail_url || undefined,
+  }] : [])
+
   const initialValues = {
     title: prompt?.title || '',
     description: prompt?.description || '',
     prompt_text: prompt?.prompt_text || '',
     negative_prompt: prompt?.negative_prompt || '',
-    image_url: prompt?.image_url || '',
-    thumbnail_url: prompt?.thumbnail_url || '',
+    images: initialImages,
     author_name: prompt?.author_name || '',
     author_wechat: prompt?.author_wechat || '',
     source: prompt?.source || 'manual',
@@ -42,21 +50,27 @@ export function PromptForm({ prompt, onSubmit, isSubmitting }: PromptFormProps) 
     tag_ids: prompt?.tags?.map((t) => t.id) || [],
   }
 
-  const handleFinish = async (values: PromptFormData) => {
-    if (!values.image_url) {
-      message.error('请上传图片')
+  const handleFinish = async (values: any) => {
+    const images = values.images as ImageData[]
+
+    if (!images || images.length === 0) {
+      message.error('请上传至少一张图片')
       return
     }
 
+    // 第一张图片作为封面
+    const formData: PromptFormData = {
+      ...values,
+      image_url: images[0].image_url,
+      thumbnail_url: images[0].thumbnail_url,
+      images: images,
+    }
+
     try {
-      await onSubmit(values)
+      await onSubmit(formData)
     } catch (error) {
       message.error((error as Error).message)
     }
-  }
-
-  const handleImageChange = (imageUrl: string, thumbnailUrl: string) => {
-    form.setFieldsValue({ image_url: imageUrl, thumbnail_url: thumbnailUrl })
   }
 
   return (
@@ -71,20 +85,18 @@ export function PromptForm({ prompt, onSubmit, isSubmitting }: PromptFormProps) 
         <Col xs={24} lg={16}>
           {/* Image Upload */}
           <Card title="作品图片" style={{ marginBottom: 24 }}>
-            <Form.Item name="image_url" hidden>
-              <Input />
-            </Form.Item>
-            <Form.Item name="thumbnail_url" hidden>
-              <Input />
-            </Form.Item>
             <Form.Item
-              rules={[{ required: true, message: '请上传图片' }]}
-              noStyle
+              name="images"
+              rules={[{
+                validator: (_, value) => {
+                  if (!value || value.length === 0) {
+                    return Promise.reject('请上传至少一张图片')
+                  }
+                  return Promise.resolve()
+                }
+              }]}
             >
-              <ImageUploader
-                value={initialValues.thumbnail_url || initialValues.image_url}
-                onChange={handleImageChange}
-              />
+              <ImageUploader maxCount={9} />
             </Form.Item>
           </Card>
 

@@ -10,6 +10,15 @@ export interface Tag {
   created_at: string
 }
 
+export interface PromptImage {
+  id: string
+  prompt_id: string
+  image_url: string
+  thumbnail_url: string | null
+  sort_order: number
+  created_at: string
+}
+
 export interface Prompt {
   id: string
   title: string
@@ -32,6 +41,7 @@ export interface Prompt {
 
 export interface PromptWithTags extends Prompt {
   tags: Tag[]
+  images?: PromptImage[]
 }
 
 export interface PromptTag {
@@ -66,6 +76,11 @@ export interface PaginatedResponse<T> {
 }
 
 // Form Types
+export interface ImageData {
+  image_url: string
+  thumbnail_url?: string
+}
+
 export interface PromptFormData {
   title: string
   description?: string
@@ -73,6 +88,7 @@ export interface PromptFormData {
   negative_prompt?: string
   image_url: string
   thumbnail_url?: string
+  images: ImageData[]
   author_name?: string
   author_wechat?: string
   source: PromptSource

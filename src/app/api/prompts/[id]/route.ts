@@ -19,6 +19,12 @@ export async function GET(
         prompt_tags (
           tag_id,
           tags (id, name, type, color)
+        ),
+        prompt_images (
+          id,
+          image_url,
+          thumbnail_url,
+          sort_order
         )
       `
       )
@@ -32,11 +38,16 @@ export async function GET(
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    // Transform to flatten tags
+    // Transform to flatten tags and sort images
     const prompt = {
       ...data,
       tags: data.prompt_tags?.map((pt: { tags: unknown }) => pt.tags) || [],
+      images: (data.prompt_images || []).sort(
+        (a: { sort_order: number }, b: { sort_order: number }) =>
+          a.sort_order - b.sort_order
+      ),
       prompt_tags: undefined,
+      prompt_images: undefined,
     }
 
     return NextResponse.json({ prompt })
@@ -66,6 +77,7 @@ export async function PUT(
       negative_prompt,
       image_url,
       thumbnail_url,
+      images,
       author_name,
       author_wechat,
       source,
@@ -75,14 +87,27 @@ export async function PUT(
       tag_ids,
     } = body
 
-    if (!title || !prompt_text || !image_url) {
+    if (!title || !prompt_text) {
       return NextResponse.json(
-        { error: '标题、提示词和图片必填' },
+        { error: '标题和提示词必填' },
+        { status: 400 }
+      )
+    }
+
+    // Check if images array is provided, else fallback to single image
+    const imageList = images?.length > 0 ? images : image_url ? [{ image_url, thumbnail_url }] : []
+
+    if (imageList.length === 0) {
+      return NextResponse.json(
+        { error: '请上传至少一张图片' },
         { status: 400 }
       )
     }
 
     const supabase = await createAdminClient()
+
+    // Use first image as cover
+    const coverImage = imageList[0]
 
     // Update prompt
     const { data: prompt, error: promptError } = await supabase
@@ -92,8 +117,8 @@ export async function PUT(
         description,
         prompt_text,
         negative_prompt,
-        image_url,
-        thumbnail_url,
+        image_url: coverImage.image_url,
+        thumbnail_url: coverImage.thumbnail_url,
         author_name,
         author_wechat,
         source,
@@ -121,6 +146,22 @@ export async function PUT(
       await supabase.from('prompt_tags').insert(tagLinks)
     }
 
+    // Update images - delete all and re-insert
+    await supabase.from('prompt_images').delete().eq('prompt_id', id)
+
+    if (imageList.length > 0) {
+      const imageRecords = imageList.map(
+        (img: { image_url: string; thumbnail_url?: string }, index: number) => ({
+          prompt_id: id,
+          image_url: img.image_url,
+          thumbnail_url: img.thumbnail_url,
+          sort_order: index,
+        })
+      )
+
+      await supabase.from('prompt_images').insert(imageRecords)
+    }
+
     return NextResponse.json({ prompt })
   } catch (error) {
     console.error('Update prompt error:', error)
@@ -142,6 +183,7 @@ export async function DELETE(
     const { id } = await params
     const supabase = await createAdminClient()
 
+    // prompt_images will be deleted automatically via ON DELETE CASCADE
     const { error } = await supabase.from('prompts').delete().eq('id', id)
 
     if (error) {
