@@ -269,19 +269,21 @@ export default function PromptsPage() {
         title={previewPrompt?.title}
         open={!!previewPrompt}
         onCancel={() => setPreviewPrompt(null)}
-        footer={[
-          <Button key="copy" icon={<CopyOutlined />} onClick={() => {
-            navigator.clipboard.writeText(previewPrompt?.prompt_text || '')
-            message.success('已复制提示词')
-          }}>
-            复制提示词
-          </Button>,
-          <Link key="edit" href={`/prompts/${previewPrompt?.id}/edit`}>
-            <Button type="primary" icon={<EditOutlined />}>
-              编辑
+        footer={
+          <Space>
+            <Button key="copy" icon={<CopyOutlined />} onClick={() => {
+              navigator.clipboard.writeText(previewPrompt?.prompt_text || '')
+              message.success('已复制提示词')
+            }}>
+              复制提示词
             </Button>
-          </Link>,
-        ]}
+            <Link key="edit" href={`/prompts/${previewPrompt?.id}/edit`}>
+              <Button type="primary" icon={<EditOutlined />}>
+                编辑
+              </Button>
+            </Link>
+          </Space>
+        }
         width={800}
         styles={{ body: { maxHeight: '70vh', overflowY: 'auto' } }}
       >
