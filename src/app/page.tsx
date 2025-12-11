@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Row, Col, Card, Statistic, Avatar, Typography, Button, Flex, Empty } from 'antd'
+import { Row, Col, Card, Statistic, Avatar, Typography, Button, Flex, Empty, Tooltip } from 'antd'
 import {
   FileImageOutlined,
   StarOutlined,
@@ -119,15 +119,22 @@ export default function DashboardPage() {
                         src={prompt.thumbnail_url}
                         icon={<FileImageOutlined />}
                       />
-                      <div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
                         <Link href={`/prompts/${prompt.id}/edit`}>
                           <Text strong>{prompt.title}</Text>
                         </Link>
-                        <div>
-                          <Text type="secondary" ellipsis style={{ maxWidth: 400, display: 'block' }}>
-                            {prompt.prompt_text?.slice(0, 50)}...
-                          </Text>
-                        </div>
+                        <Tooltip title={prompt.prompt_text} placement="topLeft" overlayStyle={{ maxWidth: 500 }}>
+                          <div style={{
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap',
+                            maxWidth: '100%'
+                          }}>
+                            <Text type="secondary">
+                              {prompt.prompt_text?.slice(0, 100)}
+                            </Text>
+                          </div>
+                        </Tooltip>
                       </div>
                     </Flex>
                     <Flex align="center" gap={8}>
