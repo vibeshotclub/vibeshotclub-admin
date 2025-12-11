@@ -13,6 +13,9 @@ import {
   Popconfirm,
   App,
   Card,
+  Modal,
+  Image,
+  Divider,
 } from 'antd'
 import {
   PlusOutlined,
@@ -29,13 +32,14 @@ import { usePrompts } from '@/hooks/usePrompts'
 import { useTags } from '@/hooks/useTags'
 import type { PromptWithTags } from '@/types/database'
 
-const { Text } = Typography
+const { Text, Title, Paragraph } = Typography
 
 export default function PromptsPage() {
   const { message } = App.useApp()
   const [search, setSearch] = useState('')
   const [selectedTag, setSelectedTag] = useState<string>('')
   const [page, setPage] = useState(1)
+  const [previewPrompt, setPreviewPrompt] = useState<PromptWithTags | null>(null)
 
   const { prompts, pagination, isLoading, deletePrompt } = usePrompts({
     page,
@@ -154,12 +158,17 @@ export default function PromptsPage() {
     {
       title: '操作',
       key: 'action',
-      width: 120,
+      width: 150,
       render: (_, record) => (
         <Space>
           <Link href={`/prompts/${record.id}/edit`}>
             <Button type="text" icon={<EditOutlined />} />
           </Link>
+          <Button
+            type="text"
+            icon={<EyeOutlined />}
+            onClick={() => setPreviewPrompt(record)}
+          />
           <Popconfirm
             title="确认删除"
             description="确定要删除这个提示词吗？此操作无法撤销。"
@@ -254,6 +263,121 @@ export default function PromptsPage() {
           onChange={handleTableChange}
         />
       </Card>
+
+      {/* Preview Modal */}
+      <Modal
+        title={previewPrompt?.title}
+        open={!!previewPrompt}
+        onCancel={() => setPreviewPrompt(null)}
+        footer={[
+          <Button key="copy" icon={<CopyOutlined />} onClick={() => {
+            navigator.clipboard.writeText(previewPrompt?.prompt_text || '')
+            message.success('已复制提示词')
+          }}>
+            复制提示词
+          </Button>,
+          <Link key="edit" href={`/prompts/${previewPrompt?.id}/edit`}>
+            <Button type="primary" icon={<EditOutlined />}>
+              编辑
+            </Button>
+          </Link>,
+        ]}
+        width={800}
+        styles={{ body: { maxHeight: '70vh', overflowY: 'auto' } }}
+      >
+        {previewPrompt && (
+          <div>
+            {/* Images */}
+            <div style={{ marginBottom: 24 }}>
+              {previewPrompt.images && previewPrompt.images.length > 1 ? (
+                <Image.PreviewGroup>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 8 }}>
+                    {previewPrompt.images.map((img, index) => (
+                      <Image
+                        key={index}
+                        src={img.thumbnail_url || img.image_url}
+                        alt={`${previewPrompt.title} - ${index + 1}`}
+                        style={{ borderRadius: 8, aspectRatio: '1', objectFit: 'cover' }}
+                        preview={{ src: img.image_url }}
+                      />
+                    ))}
+                  </div>
+                </Image.PreviewGroup>
+              ) : (
+                <Image
+                  src={previewPrompt.image_url}
+                  alt={previewPrompt.title}
+                  style={{ maxWidth: '100%', borderRadius: 8 }}
+                  preview={{ src: previewPrompt.image_url }}
+                />
+              )}
+            </div>
+
+            {/* Tags */}
+            {previewPrompt.tags && previewPrompt.tags.length > 0 && (
+              <div style={{ marginBottom: 16 }}>
+                <Space wrap size={[8, 8]}>
+                  {previewPrompt.tags.map((tag) => (
+                    <Tag key={tag.id} color={tag.color}>{tag.name}</Tag>
+                  ))}
+                </Space>
+              </div>
+            )}
+
+            {/* Prompt Text */}
+            <div style={{ marginBottom: 16 }}>
+              <Text type="secondary" style={{ fontSize: 12 }}>提示词</Text>
+              <Paragraph
+                copyable
+                style={{
+                  background: 'rgba(255,255,255,0.05)',
+                  padding: 12,
+                  borderRadius: 8,
+                  marginTop: 4,
+                  whiteSpace: 'pre-wrap',
+                }}
+              >
+                {previewPrompt.prompt_text}
+              </Paragraph>
+            </div>
+
+            {/* Negative Prompt */}
+            {previewPrompt.negative_prompt && (
+              <div style={{ marginBottom: 16 }}>
+                <Text type="secondary" style={{ fontSize: 12 }}>负面提示词</Text>
+                <Paragraph
+                  copyable
+                  style={{
+                    background: 'rgba(255,255,255,0.05)',
+                    padding: 12,
+                    borderRadius: 8,
+                    marginTop: 4,
+                    whiteSpace: 'pre-wrap',
+                  }}
+                >
+                  {previewPrompt.negative_prompt}
+                </Paragraph>
+              </div>
+            )}
+
+            <Divider style={{ margin: '16px 0' }} />
+
+            {/* Meta Info */}
+            <Space split={<Divider type="vertical" />} wrap>
+              {previewPrompt.model && (
+                <Text type="secondary">模型: {previewPrompt.model}</Text>
+              )}
+              {previewPrompt.author_name && (
+                <Text type="secondary">作者: @{previewPrompt.author_name}</Text>
+              )}
+              <Text type="secondary">浏览: {previewPrompt.view_count}</Text>
+              {previewPrompt.is_featured && (
+                <Text style={{ color: '#faad14' }}><StarFilled /> 精选</Text>
+              )}
+            </Space>
+          </div>
+        )}
+      </Modal>
     </AdminLayout>
   )
 }
