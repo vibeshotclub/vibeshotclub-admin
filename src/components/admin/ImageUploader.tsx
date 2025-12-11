@@ -72,40 +72,33 @@ export function ImageUploader({ value, onChange }: ImageUploaderProps) {
 
   if (previewUrl) {
     return (
-      <div style={{ position: 'relative', width: '100%' }}>
-        <div style={{
-          position: 'relative',
-          width: '100%',
-          aspectRatio: '16/9',
-          borderRadius: 8,
-          overflow: 'hidden',
-          background: '#1f1f1f',
-        }}>
-          <AntImage
-            src={previewUrl}
-            alt="Preview"
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-            }}
-            preview={{
-              mask: '点击预览',
-            }}
-          />
-          {uploading && (
-            <div style={{
-              position: 'absolute',
-              inset: 0,
-              background: 'rgba(0, 0, 0, 0.5)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
-              <Spin indicator={<LoadingOutlined style={{ fontSize: 32, color: '#fff' }} spin />} />
-            </div>
-          )}
-        </div>
+      <div style={{ position: 'relative', display: 'inline-block', maxWidth: '100%' }}>
+        <AntImage
+          src={previewUrl}
+          alt="Preview"
+          style={{
+            maxWidth: '100%',
+            maxHeight: 400,
+            borderRadius: 8,
+            display: 'block',
+          }}
+          preview={{
+            mask: '点击预览',
+          }}
+        />
+        {uploading && (
+          <div style={{
+            position: 'absolute',
+            inset: 0,
+            background: 'rgba(0, 0, 0, 0.5)',
+            borderRadius: 8,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
+            <Spin indicator={<LoadingOutlined style={{ fontSize: 32, color: '#fff' }} spin />} />
+          </div>
+        )}
         {!uploading && (
           <Button
             type="primary"
