@@ -123,7 +123,7 @@ export default function DashboardPage() {
                         <Link href={`/prompts/${prompt.id}/edit`}>
                           <Text strong>{prompt.title}</Text>
                         </Link>
-                        <Tooltip title={prompt.prompt_text} placement="topLeft" overlayStyle={{ maxWidth: 500 }}>
+                        <Tooltip title={prompt.prompt_text} placement="topLeft" styles={{ root: { maxWidth: 500 } }}>
                           <div style={{
                             overflow: 'hidden',
                             textOverflow: 'ellipsis',
