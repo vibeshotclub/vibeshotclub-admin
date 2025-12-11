@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { Form, Input, Select, Switch, Button, Space, Row, Col, Card, Tag, App, Divider } from 'antd'
+import { Form, Input, Select, Switch, Button, Space, Card, Tag, App, Divider } from 'antd'
 import { SaveOutlined, CloseOutlined, StarOutlined, EyeOutlined } from '@ant-design/icons'
 import { ImageUploader } from './ImageUploader'
 import { useTags } from '@/hooks/useTags'
@@ -101,20 +101,21 @@ export function PromptForm({ prompt, onSubmit, isSubmitting }: PromptFormProps) 
         </Form.Item>
       </Card>
 
-      {/* 左右两栏等高布局 */}
-      <div style={{ display: 'flex', gap: 24, alignItems: 'stretch' }}>
+      {/* 左右两栏布局 */}
+      <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
         {/* 左侧：提示词内容 */}
-        <div style={{ flex: 2, display: 'flex', flexDirection: 'column' }}>
-          <Card title="提示词内容" style={{ flex: 1, marginBottom: 24 }}>
+        <div style={{ flex: 2, minWidth: 0 }}>
+          <Card title="提示词内容" style={{ marginBottom: 24 }}>
             <Form.Item
               label="提示词"
               name="prompt_text"
               rules={[{ required: true, message: '请输入提示词' }]}
             >
               <TextArea
-                rows={6}
+                rows={16}
                 placeholder="输入完整的提示词..."
                 showCount
+                style={{ resize: 'vertical' }}
               />
             </Form.Item>
 
@@ -123,8 +124,9 @@ export function PromptForm({ prompt, onSubmit, isSubmitting }: PromptFormProps) 
               name="negative_prompt"
             >
               <TextArea
-                rows={3}
+                rows={6}
                 placeholder="输入负面提示词（可选）..."
+                style={{ resize: 'vertical' }}
               />
             </Form.Item>
 
@@ -134,16 +136,17 @@ export function PromptForm({ prompt, onSubmit, isSubmitting }: PromptFormProps) 
               style={{ marginBottom: 0 }}
             >
               <TextArea
-                rows={2}
+                rows={4}
                 placeholder="作品描述（可选）..."
+                style={{ resize: 'vertical' }}
               />
             </Form.Item>
           </Card>
         </div>
 
-        {/* 右侧：基本信息 */}
-        <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
-          <Card title="基本信息" style={{ flex: 1, marginBottom: 24 }}>
+        {/* 右侧：基本信息 + 标签 + 发布设置 */}
+        <div style={{ flex: 1, minWidth: 300 }}>
+          <Card title="基本信息" style={{ marginBottom: 24 }}>
             <Form.Item
               label="标题"
               name="title"
@@ -176,6 +179,7 @@ export function PromptForm({ prompt, onSubmit, isSubmitting }: PromptFormProps) 
             <Form.Item
               label="生成模型"
               name="model"
+              style={{ marginBottom: 0 }}
             >
               <Select
                 placeholder="选择生成模型"
@@ -201,19 +205,15 @@ export function PromptForm({ prompt, onSubmit, isSubmitting }: PromptFormProps) 
               />
             </Form.Item>
           </Card>
-        </div>
-      </div>
 
-      {/* 标签和发布设置 */}
-      <Row gutter={24}>
-        <Col xs={24} lg={16}>
+          {/* 标签 */}
           <Card title="标签" style={{ marginBottom: 24 }}>
             <Form.Item name="tag_ids" noStyle>
               <TagSelector tagsByType={tagsByType} />
             </Form.Item>
           </Card>
-        </Col>
-        <Col xs={24} lg={8}>
+
+          {/* 发布设置 */}
           <Card title="发布设置" style={{ marginBottom: 24 }}>
             <Form.Item
               name="is_featured"
@@ -236,8 +236,8 @@ export function PromptForm({ prompt, onSubmit, isSubmitting }: PromptFormProps) 
               />
             </Form.Item>
           </Card>
-        </Col>
-      </Row>
+        </div>
+      </div>
 
       {/* Actions */}
       <Divider />
