@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { Form, Input, Button, Card, Typography, message } from 'antd'
+import { Form, Input, Button, Card, Typography, App } from 'antd'
 import { LockOutlined } from '@ant-design/icons'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -9,6 +9,7 @@ const { Title, Text } = Typography
 
 export default function LoginPage() {
   const [loading, setLoading] = useState(false)
+  const { message } = App.useApp()
   const { login } = useAuth()
 
   const onFinish = async (values: { password: string }) => {

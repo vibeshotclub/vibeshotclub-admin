@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import { Upload, Image as AntImage, Button, Spin, message, Space } from 'antd'
+import { Upload, Image as AntImage, Button, Spin, App, Space } from 'antd'
 import { DeleteOutlined, LoadingOutlined, PlusOutlined } from '@ant-design/icons'
 import type { UploadProps } from 'antd'
 import type { ImageData } from '@/types/database'
@@ -13,6 +13,7 @@ interface ImageUploaderProps {
 }
 
 export function ImageUploader({ value = [], onChange, maxCount = 9 }: ImageUploaderProps) {
+  const { message } = App.useApp()
   const [uploading, setUploading] = useState(false)
   const [uploadingCount, setUploadingCount] = useState(0)
   const pendingImagesRef = useRef<ImageData[]>([])

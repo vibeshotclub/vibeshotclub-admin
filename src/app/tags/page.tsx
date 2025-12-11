@@ -14,7 +14,7 @@ import {
   Typography,
   Card,
   Popconfirm,
-  message,
+  App,
   Tabs,
 } from 'antd'
 import {
@@ -56,6 +56,7 @@ const defaultColors = [
 ]
 
 export default function TagsPage() {
+  const { message } = App.useApp()
   const { tags, tagsByType, isLoading, createTag, updateTag, deleteTag } = useTags()
 
   const [isModalOpen, setIsModalOpen] = useState(false)

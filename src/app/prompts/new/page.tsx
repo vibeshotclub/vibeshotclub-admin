@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { Typography, message } from 'antd'
+import { Typography, App } from 'antd'
 import { AdminLayout } from '@/components/admin/AdminLayout'
 import { PromptForm } from '@/components/admin/PromptForm'
 import { usePrompts } from '@/hooks/usePrompts'
@@ -12,6 +12,7 @@ const { Title, Text } = Typography
 
 export default function NewPromptPage() {
   const router = useRouter()
+  const { message } = App.useApp()
   const { createPrompt } = usePrompts()
   const [isSubmitting, setIsSubmitting] = useState(false)
 

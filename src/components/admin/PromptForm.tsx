@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { Form, Input, Select, Switch, Button, Space, Row, Col, Card, Tag, message, Divider } from 'antd'
+import { Form, Input, Select, Switch, Button, Space, Row, Col, Card, Tag, App, Divider } from 'antd'
 import { SaveOutlined, CloseOutlined, StarOutlined, EyeOutlined } from '@ant-design/icons'
 import { ImageUploader } from './ImageUploader'
 import { useTags } from '@/hooks/useTags'
@@ -23,6 +23,7 @@ const sourceOptions = [
 
 export function PromptForm({ prompt, onSubmit, isSubmitting }: PromptFormProps) {
   const router = useRouter()
+  const { message } = App.useApp()
   const { tagsByType } = useTags()
   const [form] = Form.useForm()
 

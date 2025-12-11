@@ -11,7 +11,7 @@ import {
   Avatar,
   Typography,
   Popconfirm,
-  message,
+  App,
   Card,
 } from 'antd'
 import {
@@ -32,6 +32,7 @@ import type { PromptWithTags } from '@/types/database'
 const { Text } = Typography
 
 export default function PromptsPage() {
+  const { message } = App.useApp()
   const [search, setSearch] = useState('')
   const [selectedTag, setSelectedTag] = useState<string>('')
   const [page, setPage] = useState(1)

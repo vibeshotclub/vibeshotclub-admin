@@ -2,7 +2,7 @@
 
 import { useState, use } from 'react'
 import { useRouter } from 'next/navigation'
-import { Typography, Spin, Result, message } from 'antd'
+import { Typography, Spin, Result, App } from 'antd'
 import { AdminLayout } from '@/components/admin/AdminLayout'
 import { PromptForm } from '@/components/admin/PromptForm'
 import { usePrompt, usePrompts } from '@/hooks/usePrompts'
@@ -17,6 +17,7 @@ export default function EditPromptPage({
 }) {
   const { id } = use(params)
   const router = useRouter()
+  const { message } = App.useApp()
   const { prompt, isLoading, isError } = usePrompt(id)
   const { updatePrompt } = usePrompts()
   const [isSubmitting, setIsSubmitting] = useState(false)
