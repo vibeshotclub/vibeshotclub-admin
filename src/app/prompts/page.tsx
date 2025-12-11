@@ -21,6 +21,7 @@ import {
   DeleteOutlined,
   StarFilled,
   EyeOutlined,
+  CopyOutlined,
 } from '@ant-design/icons'
 import type { ColumnsType, TablePaginationConfig } from 'antd/es/table'
 import { AdminLayout } from '@/components/admin/AdminLayout'
@@ -75,6 +76,7 @@ export default function PromptsPage() {
       title: '标题',
       dataIndex: 'title',
       key: 'title',
+      width: 200,
       render: (title, record) => (
         <Space>
           <Link href={`/prompts/${record.id}/edit`}>
@@ -93,12 +95,22 @@ export default function PromptsPage() {
       title: '提示词',
       dataIndex: 'prompt_text',
       key: 'prompt_text',
-      ellipsis: true,
       width: 300,
       render: (text) => (
-        <Text type="secondary" ellipsis={{ tooltip: text }}>
-          {text}
-        </Text>
+        <Space>
+          <Text type="secondary" ellipsis style={{ maxWidth: 220 }}>
+            {text?.length > 50 ? `${text.slice(0, 50)}...` : text}
+          </Text>
+          <Button
+            type="text"
+            size="small"
+            icon={<CopyOutlined />}
+            onClick={() => {
+              navigator.clipboard.writeText(text || '')
+              message.success('已复制提示词')
+            }}
+          />
+        </Space>
       ),
     },
     {
@@ -230,6 +242,7 @@ export default function PromptsPage() {
           dataSource={prompts}
           rowKey="id"
           loading={isLoading}
+          scroll={{ x: 900 }}
           pagination={{
             current: page,
             pageSize: 20,

@@ -1,7 +1,7 @@
 'use client'
 
 import Link from 'next/link'
-import { Row, Col, Card, Statistic, List, Avatar, Typography, Button, Space, Empty } from 'antd'
+import { Row, Col, Card, Statistic, Avatar, Typography, Button, Flex, Empty } from 'antd'
 import {
   FileImageOutlined,
   StarOutlined,
@@ -109,79 +109,72 @@ export default function DashboardPage() {
                 </Link>
               </Empty>
             ) : (
-              <List
-                itemLayout="horizontal"
-                dataSource={recentPrompts}
-                renderItem={(prompt) => (
-                  <List.Item
-                    actions={[
-                      <Space key="stats">
-                        {prompt.is_featured && (
-                          <StarOutlined style={{ color: '#faad14' }} />
-                        )}
-                        <Text type="secondary">
-                          <EyeOutlined /> {prompt.view_count}
-                        </Text>
-                      </Space>,
-                    ]}
-                  >
-                    <List.Item.Meta
-                      avatar={
-                        <Avatar
-                          shape="square"
-                          size={48}
-                          src={prompt.thumbnail_url}
-                          icon={<FileImageOutlined />}
-                        />
-                      }
-                      title={
+              <Flex vertical gap={12}>
+                {recentPrompts.map((prompt) => (
+                  <Flex key={prompt.id} align="center" justify="space-between" style={{ padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                    <Flex align="center" gap={12}>
+                      <Avatar
+                        shape="square"
+                        size={48}
+                        src={prompt.thumbnail_url}
+                        icon={<FileImageOutlined />}
+                      />
+                      <div>
                         <Link href={`/prompts/${prompt.id}/edit`}>
-                          {prompt.title}
+                          <Text strong>{prompt.title}</Text>
                         </Link>
-                      }
-                      description={
-                        <Text type="secondary" ellipsis style={{ maxWidth: 400 }}>
-                          {prompt.prompt_text}
-                        </Text>
-                      }
-                    />
-                  </List.Item>
-                )}
-              />
+                        <div>
+                          <Text type="secondary" ellipsis style={{ maxWidth: 400, display: 'block' }}>
+                            {prompt.prompt_text?.slice(0, 50)}...
+                          </Text>
+                        </div>
+                      </div>
+                    </Flex>
+                    <Flex align="center" gap={8}>
+                      {prompt.is_featured && (
+                        <StarOutlined style={{ color: '#faad14' }} />
+                      )}
+                      <Text type="secondary">
+                        <EyeOutlined /> {prompt.view_count}
+                      </Text>
+                    </Flex>
+                  </Flex>
+                ))}
+              </Flex>
             )}
           </Card>
         </Col>
 
         {/* Quick Actions */}
         <Col xs={24} lg={8}>
-          <Space direction="vertical" style={{ width: '100%' }} size={16}>
+          <Flex vertical gap={16}>
             <Card
               hoverable
               style={{ background: '#1890ff', border: 'none' }}
             >
               <Link href="/prompts/new" style={{ color: '#fff', display: 'block' }}>
-                <Space>
+                <Flex align="center" gap={12}>
                   <PlusOutlined style={{ fontSize: 24 }} />
                   <div>
                     <div style={{ fontSize: 16, fontWeight: 600 }}>添加新提示词</div>
                     <div style={{ opacity: 0.8, fontSize: 12 }}>上传图片并添加提示词到库中</div>
                   </div>
-                </Space>
+                </Flex>
               </Link>
             </Card>
 
             <Card hoverable>
               <Link href="/tags" style={{ display: 'block' }}>
-                <Space>
+                <Flex align="center" gap={12}>
                   <TagsOutlined style={{ fontSize: 24, color: '#52c41a' }} />
                   <div>
                     <div style={{ fontSize: 16, fontWeight: 600 }}>管理标签</div>
                     <Text type="secondary" style={{ fontSize: 12 }}>添加、编辑或删除分类标签</Text>
                   </div>
-                </Space>
+                </Flex>
               </Link>
             </Card>
-          </Space>
+          </Flex>
         </Col>
       </Row>
     </AdminLayout>

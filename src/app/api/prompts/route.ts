@@ -43,7 +43,7 @@ export async function GET(request: NextRequest) {
       query = query.eq('is_featured', true)
     }
 
-    if (published !== undefined) {
+    if (published) {
       query = query.eq('is_published', published === 'true')
     }
 
