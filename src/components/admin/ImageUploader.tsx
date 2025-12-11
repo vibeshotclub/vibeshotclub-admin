@@ -199,7 +199,7 @@ export function ImageUploader({ value = [], onChange, maxCount = 9 }: ImageUploa
         </div>
       ))}
 
-      {/* 上传按钮 - 与图片同行，正方形 */}
+      {/* 上传按钮 - 与图片同行，正方形，Neon风格 */}
       <Upload {...uploadProps} disabled={isDisabled} style={{ display: 'block' }}>
         <div
           style={{
@@ -207,10 +207,10 @@ export function ImageUploader({ value = [], onChange, maxCount = 9 }: ImageUploa
             paddingBottom: '100%',
             position: 'relative',
             borderRadius: 8,
-            border: `1px dashed ${isDisabled ? '#303030' : '#404040'}`,
-            background: isDisabled ? '#1a1a1a' : '#252525',
+            border: `1px dashed ${isDisabled ? 'rgba(168, 85, 247, 0.1)' : 'rgba(168, 85, 247, 0.4)'}`,
+            background: isDisabled ? 'rgba(20, 20, 30, 0.4)' : 'rgba(20, 20, 30, 0.6)',
             cursor: isDisabled ? 'not-allowed' : 'pointer',
-            opacity: isDisabled ? 0.4 : 1,
+            opacity: isDisabled ? 0.5 : 1,
             transition: 'all 0.3s',
           }}
         >
@@ -229,14 +229,14 @@ export function ImageUploader({ value = [], onChange, maxCount = 9 }: ImageUploa
           >
             {uploading ? (
               <>
-                <Spin indicator={<LoadingOutlined style={{ fontSize: 24, color: '#fff' }} spin />} />
+                <Spin indicator={<LoadingOutlined style={{ fontSize: 24, color: '#a855f7' }} spin />} />
                 <span style={{ marginTop: 8, fontSize: 12, color: 'rgba(255,255,255,0.45)' }}>
                   {uploadingCount}张
                 </span>
               </>
             ) : (
               <>
-                <PlusOutlined style={{ fontSize: 28, color: isDisabled ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.65)' }} />
+                <PlusOutlined style={{ fontSize: 28, color: isDisabled ? 'rgba(168, 85, 247, 0.3)' : '#a855f7' }} />
                 <span style={{ marginTop: 8, fontSize: 12, color: isDisabled ? 'rgba(255,255,255,0.25)' : 'rgba(255,255,255,0.45)' }}>
                   {isFull ? '已满' : '添加'}
                 </span>

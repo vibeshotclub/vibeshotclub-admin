@@ -23,8 +23,36 @@ export default function RootLayout({
             theme={{
               algorithm: theme.darkAlgorithm,
               token: {
-                colorPrimary: '#1890ff',
-                borderRadius: 6,
+                colorPrimary: '#a855f7',
+                colorBgBase: '#0a0a0f',
+                colorBgContainer: 'rgba(20, 20, 30, 0.8)',
+                colorBgElevated: 'rgba(20, 20, 30, 0.95)',
+                colorBorder: 'rgba(168, 85, 247, 0.2)',
+                colorBorderSecondary: 'rgba(255, 255, 255, 0.1)',
+                borderRadius: 8,
+                colorLink: '#a855f7',
+                colorLinkHover: '#ec4899',
+              },
+              components: {
+                Layout: {
+                  siderBg: 'transparent',
+                  bodyBg: 'transparent',
+                },
+                Menu: {
+                  darkItemBg: 'transparent',
+                  darkItemSelectedBg: 'rgba(168, 85, 247, 0.15)',
+                  darkItemHoverBg: 'rgba(168, 85, 247, 0.1)',
+                },
+                Card: {
+                  colorBgContainer: 'rgba(20, 20, 30, 0.8)',
+                },
+                Table: {
+                  colorBgContainer: 'transparent',
+                  headerBg: 'rgba(168, 85, 247, 0.1)',
+                },
+                Button: {
+                  primaryShadow: 'none',
+                },
               },
             }}
           >

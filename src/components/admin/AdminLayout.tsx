@@ -3,13 +3,14 @@
 import { useEffect, useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
-import { Layout, Menu, Spin, Button, theme } from 'antd'
+import { Layout, Menu, Spin, Button } from 'antd'
 import {
   DashboardOutlined,
   FileImageOutlined,
   TagsOutlined,
-  SettingOutlined,
   LogoutOutlined,
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
 } from '@ant-design/icons'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -42,7 +43,6 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const router = useRouter()
   const pathname = usePathname()
   const [collapsed, setCollapsed] = useState(false)
-  const { token } = theme.useToken()
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -57,7 +57,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: token.colorBgContainer
+        background: 'linear-gradient(135deg, #0a0a0f 0%, #12121a 100%)',
       }}>
         <Spin size="large" />
       </div>
@@ -72,11 +72,14 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const selectedKey = pathname === '/' ? '/' : `/${pathname.split('/')[1]}`
 
   return (
-    <Layout style={{ minHeight: '100vh' }}>
+    <Layout style={{ minHeight: '100vh', background: 'transparent' }}>
       <Sider
         collapsible
         collapsed={collapsed}
         onCollapse={setCollapsed}
+        trigger={null}
+        width={220}
+        collapsedWidth={72}
         style={{
           overflow: 'auto',
           height: '100vh',
@@ -84,23 +87,31 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           left: 0,
           top: 0,
           bottom: 0,
+          background: 'linear-gradient(180deg, rgba(10, 10, 15, 0.98) 0%, rgba(18, 18, 26, 0.98) 100%)',
+          borderRight: '1px solid rgba(168, 85, 247, 0.15)',
+          backdropFilter: 'blur(10px)',
         }}
       >
+        {/* Logo */}
         <div style={{
           height: 64,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
-          borderBottom: `1px solid ${token.colorBorderSecondary}`,
+          borderBottom: '1px solid rgba(168, 85, 247, 0.15)',
+          padding: '0 16px',
         }}>
           <h1 style={{
-            color: token.colorText,
             margin: 0,
-            fontSize: collapsed ? 14 : 18,
-            fontWeight: 600,
+            fontSize: collapsed ? 16 : 20,
+            fontWeight: 700,
             whiteSpace: 'nowrap',
+            background: 'linear-gradient(135deg, #a855f7, #ec4899)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            textShadow: '0 0 30px rgba(168, 85, 247, 0.5)',
           }}>
-            {collapsed ? 'VSC' : 'Vibe Shot Club'}
+            {collapsed ? '✦' : '✦ Vibe Shot'}
           </h1>
         </div>
 
@@ -109,9 +120,35 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           mode="inline"
           selectedKeys={[selectedKey]}
           items={menuItems}
-          style={{ borderRight: 0 }}
+          style={{
+            borderRight: 0,
+            marginTop: 8,
+          }}
         />
 
+        {/* Collapse Toggle */}
+        <div style={{
+          position: 'absolute',
+          bottom: 100,
+          left: 0,
+          right: 0,
+          padding: '0 16px',
+        }}>
+          <Button
+            type="text"
+            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+            onClick={() => setCollapsed(!collapsed)}
+            style={{
+              width: '100%',
+              justifyContent: collapsed ? 'center' : 'flex-start',
+              color: 'rgba(255, 255, 255, 0.45)',
+            }}
+          >
+            {!collapsed && '收起菜单'}
+          </Button>
+        </div>
+
+        {/* Logout */}
         <div style={{
           position: 'absolute',
           bottom: 48,
@@ -123,20 +160,30 @@ export function AdminLayout({ children }: AdminLayoutProps) {
             type="text"
             icon={<LogoutOutlined />}
             onClick={logout}
-            style={{ width: '100%', justifyContent: 'flex-start' }}
+            style={{
+              width: '100%',
+              justifyContent: collapsed ? 'center' : 'flex-start',
+              color: 'rgba(255, 255, 255, 0.65)',
+            }}
           >
             {!collapsed && '退出登录'}
           </Button>
         </div>
       </Sider>
 
-      <Layout style={{ marginLeft: collapsed ? 80 : 200, transition: 'margin-left 0.2s' }}>
+      <Layout style={{
+        marginLeft: collapsed ? 72 : 220,
+        transition: 'margin-left 0.2s',
+        background: 'transparent',
+      }}>
         <Content style={{
           margin: 24,
           padding: 24,
           minHeight: 280,
-          background: token.colorBgContainer,
-          borderRadius: token.borderRadiusLG,
+          background: 'rgba(20, 20, 30, 0.6)',
+          backdropFilter: 'blur(10px)',
+          borderRadius: 12,
+          border: '1px solid rgba(168, 85, 247, 0.1)',
         }}>
           {children}
         </Content>
