@@ -1,36 +1,92 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Vibe Shot Club Admin
 
-## Getting Started
+AI 生成图片提示词管理后台。
 
-First, run the development server:
+## 技术栈
+
+- **框架**: Next.js 16 (App Router)
+- **UI**: Ant Design (深色主题)
+- **数据库**: Supabase (PostgreSQL)
+- **存储**: Cloudflare R2
+- **认证**: JWT Cookie
+
+## 快速开始
+
+### 1. 安装依赖
+
+```bash
+npm install
+```
+
+### 2. 配置环境变量
+
+复制 `.env.example` 到 `.env.local` 并填写：
+
+```bash
+cp .env.example .env.local
+```
+
+必填变量：
+- `NEXT_PUBLIC_SUPABASE_URL` - Supabase 项目 URL
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Supabase 匿名 Key
+- `SUPABASE_SERVICE_ROLE_KEY` - Supabase Service Role Key
+- `R2_ENDPOINT` - Cloudflare R2 端点
+- `R2_ACCESS_KEY_ID` - R2 Access Key
+- `R2_SECRET_ACCESS_KEY` - R2 Secret Key
+- `R2_BUCKET_NAME` - R2 Bucket 名称
+- `R2_PUBLIC_URL` - R2 公开访问 URL
+- `ADMIN_PASSWORD` - 管理员登录密码
+- `ADMIN_JWT_SECRET` - JWT 密钥 (使用 `openssl rand -base64 32` 生成)
+
+### 3. 初始化数据库
+
+链接到 Supabase 项目：
+
+```bash
+npx supabase link --project-ref <your-project-ref>
+```
+
+推送数据库迁移：
+
+```bash
+npm run db:push
+```
+
+### 4. 启动开发服务器
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+打开 [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 常用命令
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| 命令 | 说明 |
+|------|------|
+| `npm run dev` | 启动开发服务器 |
+| `npm run build` | 构建生产版本 |
+| `npm run start` | 启动生产服务器 |
+| `npm run db:push` | 推送迁移到 Supabase |
+| `npm run db:diff` | 比较本地和远程 Schema 差异 |
+| `npm run db:migration:new <name>` | 创建新迁移文件 |
 
-## Learn More
+## 项目结构
 
-To learn more about Next.js, take a look at the following resources:
+```
+src/
+├── app/
+│   ├── api/          # API 路由
+│   ├── login/        # 登录页
+│   ├── prompts/      # 提示词管理
+│   ├── tags/         # 标签管理
+│   └── page.tsx      # Dashboard
+├── components/
+│   └── admin/        # 后台组件
+├── hooks/            # React Hooks
+├── lib/              # 工具函数
+└── types/            # TypeScript 类型
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+supabase/
+└── migrations/       # 数据库迁移文件
+```
