@@ -1,14 +1,10 @@
 -- Vibe Shot Club Database Schema
--- 在 Supabase SQL Editor 中执行此文件
-
--- Enable UUID extension
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- ============================================
 -- 标签表
 -- ============================================
 CREATE TABLE tags (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name VARCHAR(50) NOT NULL UNIQUE,
   type VARCHAR(20) NOT NULL CHECK (type IN ('style', 'topic', 'tool', 'quality')),
   color VARCHAR(7) DEFAULT '#3b82f6',
@@ -21,7 +17,7 @@ CREATE INDEX idx_tags_type ON tags(type);
 -- 提示词表
 -- ============================================
 CREATE TABLE prompts (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   title VARCHAR(200) NOT NULL,
   description TEXT,
   prompt_text TEXT NOT NULL,
@@ -61,7 +57,7 @@ CREATE INDEX idx_prompt_tags_tag ON prompt_tags(tag_id);
 -- 用户表 (Phase 2 预留)
 -- ============================================
 CREATE TABLE users (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   wechat_openid VARCHAR(100) UNIQUE,
   phone VARCHAR(20),
   nickname VARCHAR(100),
