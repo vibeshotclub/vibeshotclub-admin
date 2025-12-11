@@ -120,3 +120,17 @@ export interface TagFormData {
   type_id: string
   color: string
 }
+
+// AI 模型
+export type AIModelCategory = 'closed' | 'open'
+
+export interface AIModel {
+  id: string
+  name: string
+  vendor: string
+  category: AIModelCategory
+  is_active: boolean
+  sort_order: number
+  created_at: string
+  updated_at: string
+}

@@ -1,7 +1,7 @@
 'use client'
 
 import useSWR from 'swr'
-import type { AIModel } from '@/lib/data/ai-models'
+import type { AIModel } from '@/types/database'
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
