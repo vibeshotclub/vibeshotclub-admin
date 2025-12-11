@@ -120,7 +120,7 @@ export default function PromptsPage() {
       key: 'tags',
       width: 200,
       render: (tags) => (
-        <Space wrap size={[0, 4]}>
+        <Space wrap size={[8, 8]}>
           {tags?.slice(0, 3).map((tag: { id: string; name: string; color: string }) => (
             <Tag key={tag.id} color={tag.color}>
               {tag.name}
