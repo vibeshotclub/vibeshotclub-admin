@@ -5,6 +5,7 @@ import { Form, Input, Select, Switch, Button, Space, Row, Col, Card, Tag, App, D
 import { SaveOutlined, CloseOutlined, StarOutlined, EyeOutlined } from '@ant-design/icons'
 import { ImageUploader } from './ImageUploader'
 import { useTags } from '@/hooks/useTags'
+import { useModels } from '@/hooks/useModels'
 import type { PromptWithTags, PromptFormData, ImageData } from '@/types/database'
 
 const { TextArea } = Input
@@ -25,6 +26,7 @@ export function PromptForm({ prompt, onSubmit, isSubmitting }: PromptFormProps) 
   const router = useRouter()
   const { message } = App.useApp()
   const { tagsByType } = useTags()
+  const { grouped: modelGroups } = useModels()
   const [form] = Form.useForm()
 
   // 构建初始图片数组
@@ -82,34 +84,35 @@ export function PromptForm({ prompt, onSubmit, isSubmitting }: PromptFormProps) 
       onFinish={handleFinish}
       autoComplete="off"
     >
-      <Row gutter={24}>
-        <Col xs={24} lg={16}>
-          {/* Image Upload */}
-          <Card title="作品图片" style={{ marginBottom: 24 }}>
-            <Form.Item
-              name="images"
-              rules={[{
-                validator: (_, value) => {
-                  if (!value || value.length === 0) {
-                    return Promise.reject('请上传至少一张图片')
-                  }
-                  return Promise.resolve()
-                }
-              }]}
-            >
-              <ImageUploader maxCount={9} />
-            </Form.Item>
-          </Card>
+      {/* 图片上传区域 */}
+      <Card title="作品图片" style={{ marginBottom: 24 }}>
+        <Form.Item
+          name="images"
+          rules={[{
+            validator: (_, value) => {
+              if (!value || value.length === 0) {
+                return Promise.reject('请上传至少一张图片')
+              }
+              return Promise.resolve()
+            }
+          }]}
+        >
+          <ImageUploader maxCount={9} />
+        </Form.Item>
+      </Card>
 
-          {/* Prompt Text */}
-          <Card title="提示词内容" style={{ marginBottom: 24 }}>
+      {/* 左右两栏等高布局 */}
+      <div style={{ display: 'flex', gap: 24, alignItems: 'stretch' }}>
+        {/* 左侧：提示词内容 */}
+        <div style={{ flex: 2, display: 'flex', flexDirection: 'column' }}>
+          <Card title="提示词内容" style={{ flex: 1, marginBottom: 24 }}>
             <Form.Item
               label="提示词"
               name="prompt_text"
               rules={[{ required: true, message: '请输入提示词' }]}
             >
               <TextArea
-                rows={4}
+                rows={6}
                 placeholder="输入完整的提示词..."
                 showCount
               />
@@ -120,7 +123,7 @@ export function PromptForm({ prompt, onSubmit, isSubmitting }: PromptFormProps) 
               name="negative_prompt"
             >
               <TextArea
-                rows={2}
+                rows={3}
                 placeholder="输入负面提示词（可选）..."
               />
             </Form.Item>
@@ -128,6 +131,7 @@ export function PromptForm({ prompt, onSubmit, isSubmitting }: PromptFormProps) 
             <Form.Item
               label="描述"
               name="description"
+              style={{ marginBottom: 0 }}
             >
               <TextArea
                 rows={2}
@@ -135,11 +139,11 @@ export function PromptForm({ prompt, onSubmit, isSubmitting }: PromptFormProps) 
               />
             </Form.Item>
           </Card>
-        </Col>
+        </div>
 
-        <Col xs={24} lg={8}>
-          {/* Basic Info */}
-          <Card title="基本信息" style={{ marginBottom: 24 }}>
+        {/* 右侧：基本信息 */}
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+          <Card title="基本信息" style={{ flex: 1, marginBottom: 24 }}>
             <Form.Item
               label="标题"
               name="title"
@@ -173,18 +177,43 @@ export function PromptForm({ prompt, onSubmit, isSubmitting }: PromptFormProps) 
               label="生成模型"
               name="model"
             >
-              <Input placeholder="如 Midjourney v6" />
+              <Select
+                placeholder="选择生成模型"
+                allowClear
+                showSearch
+                optionFilterProp="label"
+                options={[
+                  {
+                    label: '闭源模型',
+                    options: modelGroups?.closed?.map(m => ({
+                      value: m.id,
+                      label: `${m.name} (${m.vendor})`,
+                    })) || [],
+                  },
+                  {
+                    label: '开源模型',
+                    options: modelGroups?.open?.map(m => ({
+                      value: m.id,
+                      label: `${m.name} (${m.vendor})`,
+                    })) || [],
+                  },
+                ]}
+              />
             </Form.Item>
           </Card>
+        </div>
+      </div>
 
-          {/* Tags */}
+      {/* 标签和发布设置 */}
+      <Row gutter={24}>
+        <Col xs={24} lg={16}>
           <Card title="标签" style={{ marginBottom: 24 }}>
             <Form.Item name="tag_ids" noStyle>
               <TagSelector tagsByType={tagsByType} />
             </Form.Item>
           </Card>
-
-          {/* Options */}
+        </Col>
+        <Col xs={24} lg={8}>
           <Card title="发布设置" style={{ marginBottom: 24 }}>
             <Form.Item
               name="is_featured"
