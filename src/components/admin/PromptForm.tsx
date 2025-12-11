@@ -144,7 +144,7 @@ export function PromptForm({ prompt, onSubmit, isSubmitting, formId = 'prompt-fo
         </div>
 
         {/* 右侧：基本信息 + 标签 + 发布设置 */}
-        <div style={{ flex: 1, minWidth: 300 }}>
+        <div style={{ flex: 1, minWidth: 300, display: 'flex', flexDirection: 'column' }}>
           <Card title="基本信息" style={{ marginBottom: 24 }}>
             <Form.Item
               label="标题"
@@ -213,7 +213,7 @@ export function PromptForm({ prompt, onSubmit, isSubmitting, formId = 'prompt-fo
           </Card>
 
           {/* 发布设置 */}
-          <Card title="发布设置" style={{ marginBottom: 24 }}>
+          <Card title="发布设置" style={{ flex: 1 }}>
             <Form.Item
               name="is_featured"
               valuePropName="checked"

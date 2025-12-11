@@ -112,7 +112,7 @@ export default function DashboardPage() {
               <Flex vertical gap={12}>
                 {recentPrompts.map((prompt) => (
                   <Flex key={prompt.id} align="center" justify="space-between" style={{ padding: '8px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                    <Flex align="center" gap={12}>
+                    <Flex align="center" gap={12} style={{ flex: 1, minWidth: 0 }}>
                       <Avatar
                         shape="square"
                         size={48}
