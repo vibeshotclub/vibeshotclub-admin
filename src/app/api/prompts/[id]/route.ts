@@ -19,12 +19,6 @@ export async function GET(
         prompt_tags (
           tag_id,
           tags (id, name, type, color)
-        ),
-        prompt_images (
-          id,
-          image_url,
-          thumbnail_url,
-          sort_order
         )
       `
       )
@@ -38,16 +32,19 @@ export async function GET(
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    // Transform to flatten tags and sort images
+    // 单独获取 prompt_images
+    const { data: images } = await supabase
+      .from('prompt_images')
+      .select('id, image_url, thumbnail_url, sort_order')
+      .eq('prompt_id', id)
+      .order('sort_order', { ascending: true })
+
+    // Transform to flatten tags and add images
     const prompt = {
       ...data,
       tags: data.prompt_tags?.map((pt: { tags: unknown }) => pt.tags) || [],
-      images: (data.prompt_images || []).sort(
-        (a: { sort_order: number }, b: { sort_order: number }) =>
-          a.sort_order - b.sort_order
-      ),
+      images: images || [],
       prompt_tags: undefined,
-      prompt_images: undefined,
     }
 
     return NextResponse.json({ prompt })

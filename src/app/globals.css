@@ -352,3 +352,52 @@ body {
 .ant-input-textarea-show-count::after {
   color: var(--text-muted) !important;
 }
+
+/* Select Dropdown */
+.ant-select-dropdown {
+  background: var(--bg-secondary) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+.ant-select-item {
+  color: var(--text-primary) !important;
+}
+
+.ant-select-item-option-active:not(.ant-select-item-option-disabled) {
+  background: rgba(168, 85, 247, 0.15) !important;
+}
+
+.ant-select-item-option-selected:not(.ant-select-item-option-disabled) {
+  background: rgba(168, 85, 247, 0.25) !important;
+  color: #a855f7 !important;
+}
+
+/* Dropdown Menu */
+.ant-dropdown-menu {
+  background: var(--bg-secondary) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+.ant-dropdown-menu-item {
+  color: var(--text-primary) !important;
+}
+
+.ant-dropdown-menu-item:hover {
+  background: rgba(168, 85, 247, 0.15) !important;
+}
+
+/* Popover */
+.ant-popover-inner {
+  background: var(--bg-secondary) !important;
+  border: 1px solid var(--border-color) !important;
+}
+
+.ant-popconfirm-message-text {
+  color: var(--text-primary) !important;
+}
+
+/* Tooltip */
+.ant-tooltip-inner {
+  background: var(--bg-secondary) !important;
+  color: var(--text-primary) !important;
+}

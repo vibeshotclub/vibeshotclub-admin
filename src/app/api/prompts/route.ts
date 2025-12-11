@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
     const featured = searchParams.get('featured')
     const published = searchParams.get('published')
 
-    // Build query
+    // Build query - 先尝试包含 prompt_images
     let query = supabase
       .from('prompts')
       .select(
@@ -24,12 +24,6 @@ export async function GET(request: NextRequest) {
         prompt_tags (
           tag_id,
           tags (id, name, type, color)
-        ),
-        prompt_images (
-          id,
-          image_url,
-          thumbnail_url,
-          sort_order
         )
       `,
         { count: 'exact' }
@@ -61,19 +55,36 @@ export async function GET(request: NextRequest) {
     const { data, error, count } = await query
 
     if (error) {
+      console.error('Supabase query error:', error)
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    // Transform data to flatten tags and sort images
+    // 单独获取 prompt_images (如果表存在)
+    let imagesMap: Record<string, Array<{ id: string; image_url: string; thumbnail_url: string | null; sort_order: number }>> = {}
+    if (data && data.length > 0) {
+      const promptIds = data.map(p => p.id)
+      const { data: images } = await supabase
+        .from('prompt_images')
+        .select('id, prompt_id, image_url, thumbnail_url, sort_order')
+        .in('prompt_id', promptIds)
+        .order('sort_order', { ascending: true })
+
+      if (images) {
+        images.forEach(img => {
+          if (!imagesMap[img.prompt_id]) {
+            imagesMap[img.prompt_id] = []
+          }
+          imagesMap[img.prompt_id].push(img)
+        })
+      }
+    }
+
+    // Transform data to flatten tags and add images
     const prompts = data?.map((prompt) => ({
       ...prompt,
       tags: prompt.prompt_tags?.map((pt: { tags: unknown }) => pt.tags) || [],
-      images: (prompt.prompt_images || []).sort(
-        (a: { sort_order: number }, b: { sort_order: number }) =>
-          a.sort_order - b.sort_order
-      ),
+      images: imagesMap[prompt.id] || [],
       prompt_tags: undefined,
-      prompt_images: undefined,
     }))
 
     // Filter by tag if needed (post-query filter for many-to-many)
@@ -95,7 +106,10 @@ export async function GET(request: NextRequest) {
     })
   } catch (error) {
     console.error('Get prompts error:', error)
-    return NextResponse.json({ error: '获取提示词失败' }, { status: 500 })
+    return NextResponse.json({
+      error: '获取提示词失败',
+      detail: error instanceof Error ? error.message : String(error)
+    }, { status: 500 })
   }
 }
 
