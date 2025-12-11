@@ -6,7 +6,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:push": "supabase db push",
+    "db:reset": "supabase db reset",
+    "db:diff": "supabase db diff",
+    "db:migration:new": "supabase migration new"
   },
   "dependencies": {
     "@ant-design/icons": "^6.1.0",
@@ -36,6 +40,7 @@
     "babel-plugin-react-compiler": "1.0.0",
     "eslint": "^9",
     "eslint-config-next": "16.0.8",
+    "supabase": "^2.65.10",
     "tailwindcss": "^4",
     "typescript": "^5"
   }
