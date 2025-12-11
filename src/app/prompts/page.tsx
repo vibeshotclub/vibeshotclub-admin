@@ -363,7 +363,7 @@ export default function PromptsPage() {
             <Divider style={{ margin: '16px 0' }} />
 
             {/* Meta Info */}
-            <Space split={<Divider type="vertical" />} wrap>
+            <Space separator={<span style={{ color: 'rgba(255,255,255,0.2)' }}>|</span>} wrap>
               {previewPrompt.model && (
                 <Text type="secondary">模型: {previewPrompt.model}</Text>
               )}
