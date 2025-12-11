@@ -285,7 +285,7 @@ export default function PromptsPage() {
           </Space>
         }
         width={800}
-        styles={{ body: { maxHeight: '70vh', overflowY: 'auto' } }}
+        styles={{ body: { maxHeight: '70vh', overflowY: 'auto', padding: '24px 32px' } }}
       >
         {previewPrompt && (
           <div>
