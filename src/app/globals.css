@@ -233,3 +233,122 @@ body {
   background: rgba(168, 85, 247, 0.3);
   color: white;
 }
+
+/* Fix Text Colors */
+.ant-typography {
+  color: var(--text-primary) !important;
+}
+
+.ant-typography.ant-typography-secondary {
+  color: var(--text-secondary) !important;
+}
+
+.ant-form-item-label > label {
+  color: var(--text-secondary) !important;
+}
+
+.ant-card-head-title {
+  color: var(--text-primary) !important;
+}
+
+.ant-table-thead > tr > th {
+  color: var(--text-primary) !important;
+}
+
+.ant-table-tbody > tr > td {
+  color: var(--text-primary) !important;
+}
+
+.ant-menu-item,
+.ant-menu-item a {
+  color: var(--text-secondary) !important;
+}
+
+.ant-menu-item-selected,
+.ant-menu-item-selected a {
+  color: var(--text-primary) !important;
+}
+
+.ant-statistic-title {
+  color: var(--text-secondary) !important;
+}
+
+.ant-list-item {
+  color: var(--text-primary) !important;
+}
+
+.ant-list-item-meta-title {
+  color: var(--text-primary) !important;
+}
+
+.ant-list-item-meta-description {
+  color: var(--text-secondary) !important;
+}
+
+.ant-empty-description {
+  color: var(--text-muted) !important;
+}
+
+.ant-input,
+.ant-input-password input,
+.ant-select-selection-item,
+.ant-picker-input input {
+  color: var(--text-primary) !important;
+}
+
+.ant-input::placeholder,
+.ant-input-password input::placeholder,
+.ant-picker-input input::placeholder {
+  color: var(--text-muted) !important;
+}
+
+.ant-btn-text {
+  color: var(--text-secondary) !important;
+}
+
+.ant-btn-text:hover {
+  color: var(--text-primary) !important;
+}
+
+.ant-tabs-tab {
+  color: var(--text-secondary) !important;
+}
+
+.ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #a855f7 !important;
+}
+
+.ant-popconfirm-message-title {
+  color: var(--text-primary) !important;
+}
+
+.ant-message-notice-content {
+  background: var(--bg-card) !important;
+  color: var(--text-primary) !important;
+}
+
+.ant-pagination-item a {
+  color: var(--text-secondary) !important;
+}
+
+.ant-pagination-item-active a {
+  color: #a855f7 !important;
+}
+
+.ant-breadcrumb-link,
+.ant-breadcrumb-separator {
+  color: var(--text-secondary) !important;
+}
+
+.ant-divider {
+  border-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* TextArea */
+.ant-input-textarea textarea {
+  color: var(--text-primary) !important;
+}
+
+.ant-input-textarea-show-count::after {
+  color: var(--text-muted) !important;
+}

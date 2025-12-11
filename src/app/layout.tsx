@@ -32,6 +32,10 @@ export default function RootLayout({
                 borderRadius: 8,
                 colorLink: '#a855f7',
                 colorLinkHover: '#ec4899',
+                colorText: '#f0f0f0',
+                colorTextSecondary: 'rgba(255, 255, 255, 0.65)',
+                colorTextTertiary: 'rgba(255, 255, 255, 0.45)',
+                colorTextQuaternary: 'rgba(255, 255, 255, 0.25)',
               },
               components: {
                 Layout: {
