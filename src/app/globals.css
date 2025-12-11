@@ -384,3 +384,72 @@ body {
   color: var(--text-primary) !important;
 }
 
+/* 提示词内容 Card - 让提示词输入框填满剩余空间 */
+.prompt-content-card {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.prompt-content-card > .ant-card-body {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 0 !important;
+}
+
+/* 可扩展的提示词 Form.Item */
+.expandable-prompt-item {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 0 !important;
+  width: 100% !important;
+}
+
+.expandable-prompt-item .ant-form-item-row {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 0 !important;
+  width: 100% !important;
+}
+
+.expandable-prompt-item .ant-form-item-control {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+}
+
+.expandable-prompt-item .ant-form-item-control-input {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 0 !important;
+  width: 100% !important;
+}
+
+.expandable-prompt-item .ant-form-item-control-input-content {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 0 !important;
+  width: 100% !important;
+}
+
+.expandable-prompt-item .ant-input-affix-wrapper,
+.expandable-prompt-item .ant-input-textarea-affix-wrapper {
+  flex: 1 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  width: 100% !important;
+}
+
+.expandable-prompt-item textarea.ant-input {
+  flex: 1 !important;
+  min-height: 200px !important;
+  width: 100% !important;
+}
+

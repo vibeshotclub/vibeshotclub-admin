@@ -101,21 +101,20 @@ export function PromptForm({ prompt, onSubmit, isSubmitting }: PromptFormProps) 
         </Form.Item>
       </Card>
 
-      {/* 左右两栏布局 */}
-      <div style={{ display: 'flex', gap: 24, alignItems: 'flex-start' }}>
+      {/* 左右两栏布局 - 等高 */}
+      <div style={{ display: 'flex', gap: 24, alignItems: 'stretch' }}>
         {/* 左侧：提示词内容 */}
-        <div style={{ flex: 2, minWidth: 0 }}>
-          <Card title="提示词内容" style={{ marginBottom: 24 }}>
+        <div style={{ flex: 2, minWidth: 0, display: 'flex', flexDirection: 'column' }}>
+          <Card title="提示词内容" className="prompt-content-card" style={{ flex: 1 }}>
             <Form.Item
               label="提示词"
               name="prompt_text"
+              className="expandable-prompt-item"
               rules={[{ required: true, message: '请输入提示词' }]}
             >
               <TextArea
-                rows={16}
                 placeholder="输入完整的提示词..."
                 showCount
-                style={{ resize: 'vertical' }}
               />
             </Form.Item>
 
@@ -124,7 +123,7 @@ export function PromptForm({ prompt, onSubmit, isSubmitting }: PromptFormProps) 
               name="negative_prompt"
             >
               <TextArea
-                rows={6}
+                rows={4}
                 placeholder="输入负面提示词（可选）..."
                 style={{ resize: 'vertical' }}
               />
@@ -136,7 +135,7 @@ export function PromptForm({ prompt, onSubmit, isSubmitting }: PromptFormProps) 
               style={{ marginBottom: 0 }}
             >
               <TextArea
-                rows={4}
+                rows={3}
                 placeholder="作品描述（可选）..."
                 style={{ resize: 'vertical' }}
               />
