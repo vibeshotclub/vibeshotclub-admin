@@ -5,6 +5,7 @@ import { Upload, Image as AntImage, Button, Spin, App, Space } from 'antd'
 import { DeleteOutlined, LoadingOutlined, PlusOutlined, CloudUploadOutlined } from '@ant-design/icons'
 import type { UploadProps } from 'antd'
 import type { ImageData } from '@/types/database'
+import { compressImage } from '@/lib/utils/compress-image'
 
 interface ImageUploaderProps {
   value?: ImageData[]
@@ -54,8 +55,8 @@ export function ImageUploader({ value = [], onChange, maxCount = 9 }: ImageUploa
       return
     }
 
-    if (file.size > 10 * 1024 * 1024) {
-      message.error(`${file.name} 文件大小不能超过 10MB`)
+    if (file.size > 50 * 1024 * 1024) {
+      message.error(`${file.name} 文件大小不能超过 50MB`)
       return
     }
 
@@ -63,8 +64,15 @@ export function ImageUploader({ value = [], onChange, maxCount = 9 }: ImageUploa
     setUploadingCount(prev => prev + 1)
 
     try {
+      // 压缩图片（如果超过 4MB）
+      let fileToUpload = file
+      if (file.size > 4 * 1024 * 1024) {
+        message.info(`${file.name} 正在压缩...`)
+        fileToUpload = await compressImage(file)
+      }
+
       const formData = new FormData()
-      formData.append('file', file)
+      formData.append('file', fileToUpload)
 
       const res = await fetch('/api/upload', {
         method: 'POST',
