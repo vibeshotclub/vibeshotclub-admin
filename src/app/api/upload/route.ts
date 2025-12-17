@@ -31,14 +31,14 @@ export async function POST(request: NextRequest) {
 
     const buffer = Buffer.from(await file.arrayBuffer())
     const id = randomUUID()
-    const ext = 'jpg'
+    const ext = 'png'
 
     // Process images with Sharp
     const { main, thumbnail } = await processImage(buffer)
 
     // Upload to R2
-    const imageUrl = await uploadToR2(`images/${id}.${ext}`, main, 'image/jpeg')
-    const thumbnailUrl = await uploadToR2(`thumbnails/${id}.${ext}`, thumbnail, 'image/jpeg')
+    const imageUrl = await uploadToR2(`images/${id}.${ext}`, main, 'image/png')
+    const thumbnailUrl = await uploadToR2(`thumbnails/${id}.${ext}`, thumbnail, 'image/png')
 
     return NextResponse.json({
       image_url: imageUrl,

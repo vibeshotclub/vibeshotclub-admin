@@ -48,12 +48,12 @@ async function processAndUploadImage(imageUrl: string): Promise<{
 }> {
   const buffer = await downloadImage(imageUrl)
   const id = randomUUID()
-  const ext = 'jpg'
+  const ext = 'png'
 
   const { main, thumbnail } = await processImage(buffer)
 
-  const uploadedImageUrl = await uploadToR2(`images/${id}.${ext}`, main, 'image/jpeg')
-  const uploadedThumbnailUrl = await uploadToR2(`thumbnails/${id}.${ext}`, thumbnail, 'image/jpeg')
+  const uploadedImageUrl = await uploadToR2(`images/${id}.${ext}`, main, 'image/png')
+  const uploadedThumbnailUrl = await uploadToR2(`thumbnails/${id}.${ext}`, thumbnail, 'image/png')
 
   return {
     image_url: uploadedImageUrl,

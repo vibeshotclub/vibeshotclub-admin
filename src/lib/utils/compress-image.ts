@@ -75,9 +75,9 @@ async function compressWithCanvas(
   // 绘制图片
   ctx.drawImage(img, 0, 0, width, height)
 
-  // 输出格式 - 统一转为 JPEG 以获得更好的压缩率和兼容性
-  const outputType = 'image/jpeg'
-  const outputName = fileName.replace(/\.[^.]+$/, '.jpg')
+  // 输出格式 - 统一转为 PNG 以获得最佳质量
+  const outputType = 'image/png'
+  const outputName = fileName.replace(/\.[^.]+$/, '.png')
 
   // 逐步降低质量直到文件小于限制
   let quality = INITIAL_QUALITY
