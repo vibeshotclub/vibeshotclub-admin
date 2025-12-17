@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "db:push": "supabase db push",
+    "db:pull": "supabase db pull",
     "db:reset": "supabase db reset",
     "db:diff": "supabase db diff",
     "db:migration:new": "sh -c 'touch supabase/migrations/$(date +%s)_$0.sql && ls -la supabase/migrations/$(date +%s)_$0.sql'"

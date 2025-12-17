@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3'
+import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from '@aws-sdk/client-s3'
 
 const R2 = new S3Client({
   region: 'auto',
@@ -41,4 +41,17 @@ export async function deleteFromR2(key: string): Promise<void> {
 export function getKeyFromUrl(url: string): string | null {
   if (!url.startsWith(PUBLIC_URL)) return null
   return url.replace(`${PUBLIC_URL}/`, '')
+}
+
+export async function getFromR2(key: string): Promise<string> {
+  const response = await R2.send(
+    new GetObjectCommand({
+      Bucket: BUCKET,
+      Key: key,
+    })
+  )
+
+  const body = await response.Body?.transformToString()
+  if (!body) throw new Error('Empty response from R2')
+  return body
 }

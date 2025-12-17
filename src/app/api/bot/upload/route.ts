@@ -32,14 +32,14 @@ export async function POST(request: NextRequest) {
 
     const buffer = Buffer.from(await file.arrayBuffer())
     const id = randomUUID()
-    const ext = 'webp'
+    const ext = 'jpg'
 
     // 处理图片
     const { main, thumbnail } = await processImage(buffer)
 
     // 上传到 R2
-    const imageUrl = await uploadToR2(`images/${id}.${ext}`, main, 'image/webp')
-    const thumbnailUrl = await uploadToR2(`thumbnails/${id}.${ext}`, thumbnail, 'image/webp')
+    const imageUrl = await uploadToR2(`images/${id}.${ext}`, main, 'image/jpeg')
+    const thumbnailUrl = await uploadToR2(`thumbnails/${id}.${ext}`, thumbnail, 'image/jpeg')
 
     return NextResponse.json({
       success: true,

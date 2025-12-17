@@ -3,8 +3,8 @@
  * 使用 Canvas API 将图片压缩到指定大小以下
  */
 
-const MAX_SIZE = 4 * 1024 * 1024 // 4MB - Vercel Hobby 限制是 4.5MB，留点余量
-const MAX_DIMENSION = 4096 // 最大尺寸
+const MAX_SIZE = 5 * 1024 * 1024 // 5MB - 目标上传大小限制
+const MAX_DIMENSION = 2048 // 最大尺寸 (2K)
 const INITIAL_QUALITY = 0.9
 const MIN_QUALITY = 0.5
 
@@ -75,10 +75,9 @@ async function compressWithCanvas(
   // 绘制图片
   ctx.drawImage(img, 0, 0, width, height)
 
-  // 输出格式 - PNG 转为 JPEG 以获得更好的压缩率
-  const outputType = mimeType === 'image/png' ? 'image/jpeg' : mimeType
-  const ext = outputType === 'image/jpeg' ? '.jpg' : '.webp'
-  const outputName = fileName.replace(/\.[^.]+$/, ext)
+  // 输出格式 - 统一转为 JPEG 以获得更好的压缩率和兼容性
+  const outputType = 'image/jpeg'
+  const outputName = fileName.replace(/\.[^.]+$/, '.jpg')
 
   // 逐步降低质量直到文件小于限制
   let quality = INITIAL_QUALITY

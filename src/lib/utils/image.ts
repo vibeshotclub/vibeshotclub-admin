@@ -1,21 +1,55 @@
 import sharp from 'sharp'
 
+const MAX_SIZE = 5 * 1024 * 1024 // 5MB
+const MAX_DIMENSION = 2048 // 2K resolution
+
 interface ProcessedImage {
   main: Buffer
   thumbnail: Buffer
 }
 
 export async function processImage(buffer: Buffer): Promise<ProcessedImage> {
-  // Main image: max 1200px width, webp format, quality 85
-  const main = await sharp(buffer)
-    .resize(1200, null, { withoutEnlargement: true })
-    .webp({ quality: 85 })
+  // Main image: max 2048px on long edge (2K), JPEG format for better quality
+  let main = await sharp(buffer)
+    .resize({
+      width: MAX_DIMENSION,
+      height: MAX_DIMENSION,
+      fit: 'inside',
+      withoutEnlargement: true,
+    })
+    .jpeg({ quality: 90 })
     .toBuffer()
 
-  // Thumbnail: 400px width, webp format, quality 75
+  // If result > 5MB, reduce quality progressively
+  if (main.length > MAX_SIZE) {
+    main = await sharp(buffer)
+      .resize({
+        width: MAX_DIMENSION,
+        height: MAX_DIMENSION,
+        fit: 'inside',
+        withoutEnlargement: true,
+      })
+      .jpeg({ quality: 80 })
+      .toBuffer()
+  }
+
+  // If still > 5MB, reduce quality further
+  if (main.length > MAX_SIZE) {
+    main = await sharp(buffer)
+      .resize({
+        width: MAX_DIMENSION,
+        height: MAX_DIMENSION,
+        fit: 'inside',
+        withoutEnlargement: true,
+      })
+      .jpeg({ quality: 70 })
+      .toBuffer()
+  }
+
+  // Thumbnail: 400px width, JPEG format
   const thumbnail = await sharp(buffer)
     .resize(400, null, { withoutEnlargement: true })
-    .webp({ quality: 75 })
+    .jpeg({ quality: 80 })
     .toBuffer()
 
   return { main, thumbnail }

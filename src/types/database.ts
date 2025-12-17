@@ -134,3 +134,39 @@ export interface AIModel {
   created_at: string
   updated_at: string
 }
+
+export interface AIModelFormData {
+  id: string
+  name: string
+  vendor: string
+  category: AIModelCategory
+  is_active: boolean
+  sort_order: number
+}
+
+// 日报
+export type ReportSource = 'manual' | 'bot'
+
+export interface DailyReport {
+  id: string
+  date: string
+  title: string
+  summary: string | null
+  content_url: string
+  source: ReportSource
+  is_published: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface DailyReportFormData {
+  date: string
+  title: string
+  summary?: string
+  content: string
+  is_published: boolean
+}
+
+export interface DailyReportWithContent extends DailyReport {
+  content: string
+}

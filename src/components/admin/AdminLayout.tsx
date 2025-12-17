@@ -8,6 +8,8 @@ import {
   DashboardOutlined,
   FileImageOutlined,
   TagsOutlined,
+  RobotOutlined,
+  FileTextOutlined,
   LogoutOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
@@ -36,6 +38,16 @@ const menuItems = [
     key: '/tags',
     icon: <TagsOutlined />,
     label: <Link href="/tags">标签管理</Link>,
+  },
+  {
+    key: '/models',
+    icon: <RobotOutlined />,
+    label: <Link href="/models">模型管理</Link>,
+  },
+  {
+    key: '/reports',
+    icon: <FileTextOutlined />,
+    label: <Link href="/reports">日报管理</Link>,
   },
 ]
 
