@@ -1,6 +1,6 @@
 import sharp from 'sharp'
 
-const MAX_SIZE = 5 * 1024 * 1024 // 5MB
+const MAX_SIZE = 4 * 1024 * 1024 // 4MB - Vercel limit
 const MAX_DIMENSION = 2048 // 2K resolution
 
 interface ProcessedImage {
@@ -9,7 +9,7 @@ interface ProcessedImage {
 }
 
 export async function processImage(buffer: Buffer): Promise<ProcessedImage> {
-  // Main image: max 2048px on long edge (2K), PNG format for best quality
+  // Main image: max 2048px on long edge (2K), PNG format
   let main = await sharp(buffer)
     .resize({
       width: MAX_DIMENSION,
@@ -20,12 +20,12 @@ export async function processImage(buffer: Buffer): Promise<ProcessedImage> {
     .png({ compressionLevel: 6 })
     .toBuffer()
 
-  // If result > 5MB, increase compression
+  // If result > 4MB, increase compression and reduce dimensions
   if (main.length > MAX_SIZE) {
     main = await sharp(buffer)
       .resize({
-        width: MAX_DIMENSION,
-        height: MAX_DIMENSION,
+        width: 1920,
+        height: 1920,
         fit: 'inside',
         withoutEnlargement: true,
       })
@@ -33,12 +33,12 @@ export async function processImage(buffer: Buffer): Promise<ProcessedImage> {
       .toBuffer()
   }
 
-  // If still > 5MB, reduce dimensions slightly
+  // If still > 4MB, reduce dimensions further
   if (main.length > MAX_SIZE) {
     main = await sharp(buffer)
       .resize({
-        width: 1920,
-        height: 1920,
+        width: 1600,
+        height: 1600,
         fit: 'inside',
         withoutEnlargement: true,
       })

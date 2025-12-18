@@ -3,7 +3,7 @@
  * 使用 Canvas API 将图片压缩到指定大小以下
  */
 
-const MAX_SIZE = 5 * 1024 * 1024 // 5MB - 目标上传大小限制
+const MAX_SIZE = 4 * 1024 * 1024 // 4MB - Vercel limit
 const MAX_DIMENSION = 2048 // 最大尺寸 (2K)
 const INITIAL_QUALITY = 0.9
 const MIN_QUALITY = 0.5
