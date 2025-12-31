@@ -13,6 +13,7 @@ import {
   LogoutOutlined,
   MenuFoldOutlined,
   MenuUnfoldOutlined,
+  XOutlined,
 } from '@ant-design/icons'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -48,6 +49,11 @@ const menuItems = [
     key: '/reports',
     icon: <FileTextOutlined />,
     label: <Link href="/reports">日报管理</Link>,
+  },
+  {
+    key: '/creators',
+    icon: <XOutlined />,
+    label: <Link href="/creators">Twitter 创作者</Link>,
   },
 ]
 

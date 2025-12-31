@@ -1,0 +1,60 @@
+name: Twitter Prompt Crawler
+
+on:
+  schedule:
+    # 每天 UTC 时间 00:00 和 12:00 运行 (北京时间 08:00 和 20:00)
+    - cron: '0 0,12 * * *'
+  workflow_dispatch:
+    inputs:
+      debug:
+        description: 'Enable debug mode'
+        required: false
+        default: 'false'
+
+env:
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+          cache-dependency-path: 'scripts/twitter-crawler/requirements.txt'
+
+      - name: Install dependencies
+        run: |
+          cd scripts/twitter-crawler
+          pip install -r requirements.txt
+
+      - name: Run crawler
+        env:
+          BOT_API_KEY: ${{ secrets.BOT_API_KEY }}
+          BOT_API_URL: ${{ secrets.BOT_API_URL }}
+          # AI Provider (claude, deepseek, openai, qwen)
+          AI_PROVIDER: ${{ vars.AI_PROVIDER }}
+          CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          QWEN_API_KEY: ${{ secrets.QWEN_API_KEY }}
+          NITTER_INSTANCES: ${{ vars.NITTER_INSTANCES }}
+          DEBUG: ${{ github.event.inputs.debug }}
+        run: |
+          cd scripts/twitter-crawler
+          python main.py
+
+      - name: Upload logs (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crawler-logs
+          path: scripts/twitter-crawler/logs/
+          retention-days: 7

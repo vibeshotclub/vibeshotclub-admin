@@ -170,3 +170,27 @@ export interface DailyReportFormData {
 export interface DailyReportWithContent extends DailyReport {
   content: string
 }
+
+// Twitter 创作者
+export interface TwitterCreator {
+  id: string
+  username: string
+  display_name: string | null
+  avatar_url: string | null
+  description: string | null
+  is_active: boolean
+  last_fetched_at: string | null
+  last_tweet_id: string | null
+  fetch_count: number
+  success_count: number
+  created_at: string
+  updated_at: string
+}
+
+export interface TwitterCreatorFormData {
+  username: string
+  display_name?: string
+  avatar_url?: string
+  description?: string
+  is_active: boolean
+}
