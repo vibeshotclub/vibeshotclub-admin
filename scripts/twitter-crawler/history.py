@@ -119,7 +119,7 @@ def process_tweets(raw_tweets, crawler, analyzer, api, username, cutoff_date, dr
                 title=analysis.suggested_title or f"@{username} 的提示词",
                 prompt_text=analysis.extracted_prompt or tweet.text,
                 image_urls=tweet.image_urls,
-                author_name=f"@{username}",
+                author_name=username,
                 negative_prompt=analysis.extracted_negative_prompt,
                 model=analysis.suggested_model,
                 description=f"来源: {tweet.url}"

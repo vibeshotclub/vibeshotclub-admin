@@ -73,7 +73,7 @@ def main():
                                 title=analysis.suggested_title or f"@{creator.username} 的提示词",
                                 prompt_text=analysis.extracted_prompt or tweet.text,
                                 image_urls=tweet.image_urls,
-                                author_name=f"@{creator.username}",
+                                author_name=creator.username,
                                 negative_prompt=analysis.extracted_negative_prompt,
                                 model=analysis.suggested_model,
                                 description=f"来源: {tweet.url}"
