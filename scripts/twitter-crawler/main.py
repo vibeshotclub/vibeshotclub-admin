@@ -5,8 +5,9 @@ Twitter Prompt Crawler
 """
 
 import logging
+from typing import List, Optional
 from config import Config
-from crawler import TwitterCrawler
+from crawler import TwitterCrawler, Tweet
 from ai import create_analyzer
 from api import BotApiClient
 
@@ -16,6 +17,56 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+# 每个用户最多翻页数（防止无限循环）
+MAX_PAGES_PER_USER = 5
+
+
+def fetch_all_new_tweets(
+    crawler: TwitterCrawler,
+    username: str,
+    since_id: Optional[str] = None
+) -> List[Tweet]:
+    """获取用户所有新推文（支持分页），直到遇到 since_id 或达到上限"""
+    all_tweets = []
+    cursor = None
+
+    for page in range(MAX_PAGES_PER_USER):
+        logger.debug(f"  Fetching page {page + 1}...")
+
+        try:
+            results, next_cursor = crawler.fetch_timeline_page(username, cursor)
+        except Exception as e:
+            logger.error(f"  Failed to fetch page {page + 1}: {e}")
+            break
+
+        if not results:
+            break
+
+        reached_since_id = False
+        for item in results:
+            tweet = crawler._parse_tweet(item, username)
+            if not tweet:
+                continue
+
+            # 增量检查：遇到已处理的推文就停止
+            if since_id and tweet.id <= since_id:
+                reached_since_id = True
+                break
+
+            # 只保留有图片的
+            if tweet.image_urls:
+                all_tweets.append(tweet)
+
+        if reached_since_id:
+            logger.debug(f"  Reached since_id at page {page + 1}")
+            break
+
+        cursor = next_cursor
+        if not cursor:
+            break
+
+    return all_tweets
 
 
 def main():
@@ -47,8 +98,9 @@ def main():
             stats['creators_processed'] += 1
 
             try:
-                # 抓取推文
-                tweets = crawler.fetch_user_tweets(
+                # 抓取所有新推文（分页）
+                tweets = fetch_all_new_tweets(
+                    crawler,
                     username=creator.username,
                     since_id=creator.last_tweet_id
                 )
