@@ -5,7 +5,7 @@ import json
 import sys
 sys.path.append('..')
 from config import Config
-from crawler.nitter import Tweet
+from crawler import Tweet
 
 
 @dataclass
