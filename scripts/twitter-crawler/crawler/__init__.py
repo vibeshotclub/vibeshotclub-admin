@@ -1,3 +1,3 @@
-from .nitter import NitterCrawler
+from .twitter import TwitterCrawler, Tweet
 
-__all__ = ['NitterCrawler']
+__all__ = ['TwitterCrawler', 'Tweet']

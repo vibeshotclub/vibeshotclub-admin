@@ -24,6 +24,7 @@
 .DS_Store
 *.pem
 .claude/
+.mcp.json
 
 # debug
 npm-debug.log*

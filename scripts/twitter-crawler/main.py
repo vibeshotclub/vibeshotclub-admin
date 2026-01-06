@@ -6,7 +6,7 @@ Twitter Prompt Crawler
 
 import logging
 from config import Config
-from crawler import NitterCrawler
+from crawler import TwitterCrawler
 from ai import create_analyzer
 from api import BotApiClient
 
@@ -24,7 +24,7 @@ def main():
     logger.info(f"AI Provider: {Config.AI_PROVIDER}")
 
     # 初始化组件
-    crawler = NitterCrawler()
+    crawler = TwitterCrawler()
     analyzer = create_analyzer()
     api = BotApiClient()
 
