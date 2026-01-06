@@ -2,6 +2,8 @@ import httpx
 from typing import List, Optional
 from dataclasses import dataclass
 
+from tenacity import retry, stop_after_attempt, wait_exponential
+
 import sys
 sys.path.append('..')
 from config import Config
@@ -44,6 +46,7 @@ class BotApiClient:
             for c in data.get('creators', [])
         ]
 
+    @retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
     def create_prompt(
         self,
         title: str,

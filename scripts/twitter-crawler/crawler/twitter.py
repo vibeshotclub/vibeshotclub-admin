@@ -69,6 +69,29 @@ class TwitterCrawler:
         time.sleep(Config.REQUEST_DELAY)
         return tweets
 
+    def fetch_timeline_page(
+        self,
+        username: str,
+        cursor: Optional[str] = None
+    ) -> tuple[List[dict], Optional[str]]:
+        """获取单页 timeline，返回 (原始数据列表, next_cursor)"""
+        params = {'screenname': username}
+        if cursor:
+            params['cursor'] = cursor
+
+        response = self.client.get(
+            f"{self.base_url}/timeline.php",
+            params=params
+        )
+        response.raise_for_status()
+        data = response.json()
+
+        results = data.get('timeline', [])
+        next_cursor = data.get('next_cursor')
+
+        time.sleep(Config.REQUEST_DELAY)
+        return results, next_cursor
+
     def _parse_tweet(self, item: dict, username: str) -> Optional[Tweet]:
         """解析单条推文"""
         try:
