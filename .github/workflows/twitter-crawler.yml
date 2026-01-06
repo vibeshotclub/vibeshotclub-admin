@@ -43,8 +43,8 @@ jobs:
           AI_PROVIDER: ${{ vars.AI_PROVIDER }}
           CLAUDE_API_KEY: ${{ secrets.CLAUDE_API_KEY }}
           DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          QWEN_API_KEY: ${{ secrets.QWEN_API_KEY }}
+          # OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          # QWEN_API_KEY: ${{ secrets.QWEN_API_KEY }}
           NITTER_INSTANCES: ${{ vars.NITTER_INSTANCES }}
           DEBUG: ${{ github.event.inputs.debug }}
         run: |
