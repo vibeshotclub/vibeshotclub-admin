@@ -17,9 +17,11 @@ class Creator:
 
 class BotApiClient:
     def __init__(self):
-        self.base_url = Config.BOT_API_URL
+        # 去掉末尾斜杠，避免 URL 拼接问题
+        self.base_url = Config.BOT_API_URL.rstrip('/')
         self.client = httpx.Client(
             timeout=60,  # 上传可能较慢
+            follow_redirects=True,  # 跟随重定向
             headers={
                 'x-api-key': Config.BOT_API_KEY,
                 'Content-Type': 'application/json'
