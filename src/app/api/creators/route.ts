@@ -12,19 +12,12 @@ export async function GET(request: NextRequest) {
     }
 
     const supabase = await createAdminClient()
-    const { searchParams } = new URL(request.url)
-    const activeOnly = searchParams.get('active_only') === 'true'
 
-    let query = supabase
+    // 默认按创建时间倒序
+    const { data, error } = await supabase
       .from('twitter_creators')
       .select('*')
       .order('created_at', { ascending: false })
-
-    if (activeOnly) {
-      query = query.eq('is_active', true)
-    }
-
-    const { data, error } = await query
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
@@ -46,7 +39,8 @@ export async function POST(request: NextRequest) {
     }
 
     const body: TwitterCreatorFormData = await request.json()
-    const { username, display_name, avatar_url, description, is_active } = body
+    // [修改] 解构 is_vsc
+    const { username, display_name, avatar_url, description, is_active, is_vsc } = body
 
     if (!username?.trim()) {
       return NextResponse.json({ error: 'username 为必填项' }, { status: 400 })
@@ -65,7 +59,7 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (existing) {
-      return NextResponse.json({ error: '该用户名已存在' }, { status: 400 })
+      return NextResponse.json({ error: '该创作者已存在' }, { status: 400 })
     }
 
     const { data, error } = await supabase
@@ -76,14 +70,12 @@ export async function POST(request: NextRequest) {
         avatar_url: avatar_url?.trim() || null,
         description: description?.trim() || null,
         is_active: is_active ?? true,
+        is_vsc: is_vsc ?? false, // [修改] 写入数据库
       })
       .select()
       .single()
 
     if (error) {
-      if (error.code === '23505') {
-        return NextResponse.json({ error: '该用户名已存在' }, { status: 400 })
-      }
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
