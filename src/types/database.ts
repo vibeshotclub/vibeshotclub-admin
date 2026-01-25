@@ -177,6 +177,7 @@ export interface TwitterCreator {
   username: string
   display_name: string | null
   avatar_url: string | null
+  xiaohongshu_url: string | null
   description: string | null
   is_active: boolean
   is_vsc: boolean
@@ -192,6 +193,7 @@ export interface TwitterCreatorFormData {
   username: string
   display_name?: string
   avatar_url?: string
+  xiaohongshu_url?: string
   description?: string
   is_active: boolean
   is_vsc: boolean

@@ -50,9 +50,11 @@ export default function CreatorsPage() {
     form.setFieldsValue({
       username: '',
       display_name: '',
+      avatar_url: '',
+      xiaohongshu_url: '',
       description: '',
       is_active: true,
-      is_vsc: false, // [修改] 默认值
+      is_vsc: false,
     })
     setIsModalOpen(true)
   }
@@ -62,9 +64,11 @@ export default function CreatorsPage() {
     form.setFieldsValue({
       username: creator.username,
       display_name: creator.display_name || '',
+      avatar_url: creator.avatar_url || '',            
+      xiaohongshu_url: creator.xiaohongshu_url || '',
       description: creator.description || '',
       is_active: creator.is_active,
-      is_vsc: creator.is_vsc, // [修改] 回填值
+      is_vsc: creator.is_vsc,
     })
     setIsModalOpen(true)
   }
@@ -258,6 +262,8 @@ export default function CreatorsPage() {
           initialValues={{
             username: '',
             display_name: '',
+            avatar_url: '',
+            xiaohongshu_url: '',
             description: '',
             is_active: true,
             is_vsc: false, // [修改] 默认值
@@ -283,13 +289,28 @@ export default function CreatorsPage() {
           </Form.Item>
 
           <Form.Item
+            label="头像链接"
+            name="avatar_url"
+            rules={[{ type: 'url', message: '请输入有效的图片链接' }]}
+          >
+            <Input placeholder="https://..." />
+          </Form.Item>
+
+          <Form.Item
+            label="小红书主页"
+            name="xiaohongshu_url"
+            rules={[{ type: 'url', message: '请输入有效的链接' }]}
+          >
+            <Input placeholder="https://www.xiaohongshu.com/user/..." />
+          </Form.Item>
+
+          <Form.Item
             label="备注"
             name="description"
           >
             <Input.TextArea placeholder="可选备注信息" rows={2} />
           </Form.Item>
 
-          {/* [新增] VSC 成员开关 */}
           <Form.Item
             label="VSC 成员"
             name="is_vsc"

@@ -51,8 +51,8 @@ export async function PUT(
 
     const { id } = await params
     const body: TwitterCreatorFormData = await request.json()
-    // [修改] 增加 is_vsc
-    const { username, display_name, avatar_url, description, is_active, is_vsc } = body
+
+    const { username, display_name, avatar_url, xiaohongshu_url, description, is_active, is_vsc } = body
 
     if (!username?.trim()) {
       return NextResponse.json({ error: 'username 为必填项' }, { status: 400 })
@@ -67,6 +67,7 @@ export async function PUT(
         username: cleanUsername,
         display_name: display_name?.trim() || null,
         avatar_url: avatar_url?.trim() || null,
+        xiaohongshu_url: xiaohongshu_url?.trim() || null,
         description: description?.trim() || null,
         is_active,
         is_vsc, // [修改] 更新字段

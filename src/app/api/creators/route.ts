@@ -39,8 +39,8 @@ export async function POST(request: NextRequest) {
     }
 
     const body: TwitterCreatorFormData = await request.json()
-    // [修改] 解构 is_vsc
-    const { username, display_name, avatar_url, description, is_active, is_vsc } = body
+
+    const { username, display_name, avatar_url, xiaohongshu_url, description, is_active, is_vsc } = body
 
     if (!username?.trim()) {
       return NextResponse.json({ error: 'username 为必填项' }, { status: 400 })
@@ -68,9 +68,10 @@ export async function POST(request: NextRequest) {
         username: cleanUsername,
         display_name: display_name?.trim() || null,
         avatar_url: avatar_url?.trim() || null,
+        xiaohongshu_url: xiaohongshu_url?.trim() || null,
         description: description?.trim() || null,
         is_active: is_active ?? true,
-        is_vsc: is_vsc ?? false, // [修改] 写入数据库
+        is_vsc: is_vsc ?? false,
       })
       .select()
       .single()
