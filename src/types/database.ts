@@ -179,6 +179,7 @@ export interface TwitterCreator {
   avatar_url: string | null
   description: string | null
   is_active: boolean
+  is_vsc: boolean
   last_fetched_at: string | null
   last_tweet_id: string | null
   fetch_count: number
@@ -193,4 +194,5 @@ export interface TwitterCreatorFormData {
   avatar_url?: string
   description?: string
   is_active: boolean
+  is_vsc: boolean
 }

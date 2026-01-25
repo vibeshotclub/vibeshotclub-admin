@@ -52,6 +52,7 @@ export default function CreatorsPage() {
       display_name: '',
       description: '',
       is_active: true,
+      is_vsc: false, // [修改] 默认值
     })
     setIsModalOpen(true)
   }
@@ -63,6 +64,7 @@ export default function CreatorsPage() {
       display_name: creator.display_name || '',
       description: creator.description || '',
       is_active: creator.is_active,
+      is_vsc: creator.is_vsc, // [修改] 回填值
     })
     setIsModalOpen(true)
   }
@@ -101,6 +103,7 @@ export default function CreatorsPage() {
         display_name: creator.display_name || undefined,
         description: creator.description || undefined,
         is_active: !creator.is_active,
+        is_vsc: creator.is_vsc, // 保持原有的 vsc 状态
       })
       message.success(creator.is_active ? '已停用' : '已启用')
     } catch (error) {
@@ -121,6 +124,10 @@ export default function CreatorsPage() {
               <Link href={`https://x.com/${record.username}`} target="_blank">
                 @{record.username}
               </Link>
+              {/* [新增] VSC 标识 */}
+              {record.is_vsc && (
+                <Tag color="purple" style={{ marginLeft: 8, fontSize: 10 }}>VSC</Tag>
+              )}
             </div>
             {record.display_name && (
               <Text type="secondary" style={{ fontSize: 12 }}>
@@ -253,6 +260,7 @@ export default function CreatorsPage() {
             display_name: '',
             description: '',
             is_active: true,
+            is_vsc: false, // [修改] 默认值
           }}
         >
           <Form.Item
@@ -279,6 +287,16 @@ export default function CreatorsPage() {
             name="description"
           >
             <Input.TextArea placeholder="可选备注信息" rows={2} />
+          </Form.Item>
+
+          {/* [新增] VSC 成员开关 */}
+          <Form.Item
+            label="VSC 成员"
+            name="is_vsc"
+            valuePropName="checked"
+            tooltip="开启后标记为 Vibe Shot Club 成员"
+          >
+            <Switch />
           </Form.Item>
 
           <Form.Item
