@@ -5,8 +5,8 @@ import type { TwitterCreator, TwitterCreatorFormData } from '@/types/database'
 
 const fetcher = (url: string) => fetch(url).then((res) => res.json())
 
-export function useCreators(activeOnly = false) {
-  const url = activeOnly ? '/api/creators?active_only=true' : '/api/creators'
+export function useCreators(sortBy: 'created_at' | 'sort_order' = 'created_at') {
+  const url = `/api/creators?sort_by=${sortBy}`
   const { data, error, isLoading, mutate } = useSWR(url, fetcher)
 
   const createCreator = async (formData: TwitterCreatorFormData) => {

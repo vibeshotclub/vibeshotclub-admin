@@ -52,7 +52,7 @@ export async function PUT(
     const { id } = await params
     const body: TwitterCreatorFormData = await request.json()
 
-    const { username, display_name, avatar_url, xiaohongshu_url, description, is_active, is_vsc } = body
+    const { username, display_name, avatar_url, x_url, xiaohongshu_url, description, is_active, is_vsc } = body
 
     if (!username?.trim()) {
       return NextResponse.json({ error: 'username 为必填项' }, { status: 400 })
@@ -61,16 +61,32 @@ export async function PUT(
     const cleanUsername = username.trim().replace(/^@/, '')
     const supabase = await createAdminClient()
 
+    // 检查新用户名是否已被其他创作者使用
+    const { data: existing } = await supabase
+      .from('twitter_creators')
+      .select('id')
+      .eq('username', cleanUsername)
+      .neq('id', id)
+      .single()
+
+    if (existing) {
+      return NextResponse.json({ error: '该用户名已被其他创作者使用' }, { status: 400 })
+    }
+
+    // 如果用户名变了，自动更新 x_url
+    const finalXUrl = x_url?.trim() || `https://x.com/${cleanUsername}`
+
     const { data, error } = await supabase
       .from('twitter_creators')
       .update({
         username: cleanUsername,
         display_name: display_name?.trim() || null,
         avatar_url: avatar_url?.trim() || null,
+        x_url: finalXUrl,
         xiaohongshu_url: xiaohongshu_url?.trim() || null,
         description: description?.trim() || null,
         is_active,
-        is_vsc, // [修改] 更新字段
+        is_vsc,
       })
       .eq('id', id)
       .select()

@@ -14,6 +14,7 @@ import {
   MenuFoldOutlined,
   MenuUnfoldOutlined,
   XOutlined,
+  TeamOutlined,
 } from '@ant-design/icons'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -54,6 +55,11 @@ const menuItems = [
     key: '/creators',
     icon: <XOutlined />,
     label: <Link href="/creators">Twitter 创作者</Link>,
+  },
+  {
+    key: '/creators-showcase',
+    icon: <TeamOutlined />,
+    label: <Link href="/creators-showcase">创作者展示</Link>,
   },
 ]
 

@@ -70,6 +70,7 @@ export default function CreatorsPage() {
       username: '',
       display_name: '',
       avatar_url: '',
+      x_url: '',
       xiaohongshu_url: '',
       description: '',
       is_active: true,
@@ -83,13 +84,22 @@ export default function CreatorsPage() {
     form.setFieldsValue({
       username: creator.username,
       display_name: creator.display_name || '',
-      avatar_url: creator.avatar_url || '',            
+      avatar_url: creator.avatar_url || '',
+      x_url: creator.x_url || `https://x.com/${creator.username}`,
       xiaohongshu_url: creator.xiaohongshu_url || '',
       description: creator.description || '',
       is_active: creator.is_active,
       is_vsc: creator.is_vsc,
     })
     setIsModalOpen(true)
+  }
+
+  // 当用户名变化时自动更新 x_url
+  const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const username = e.target.value.trim().replace(/^@/, '')
+    if (username) {
+      form.setFieldValue('x_url', `https://x.com/${username}`)
+    }
   }
 
   const handleSubmit = async (values: TwitterCreatorFormData) => {
@@ -124,6 +134,7 @@ export default function CreatorsPage() {
       await updateCreator(creator.id, {
         username: creator.username,
         display_name: creator.display_name || undefined,
+        x_url: creator.x_url || undefined,
         description: creator.description || undefined,
         is_active: !creator.is_active,
         is_vsc: creator.is_vsc,
@@ -141,6 +152,7 @@ export default function CreatorsPage() {
       await updateCreator(creator.id, {
         username: creator.username,
         display_name: creator.display_name || undefined,
+        x_url: creator.x_url || undefined,
         description: editingDescriptionValue || undefined,
         is_active: creator.is_active,
         is_vsc: creator.is_vsc,
@@ -271,7 +283,7 @@ export default function CreatorsPage() {
           <Avatar src={record.avatar_url} icon={<XOutlined />} />
           <div>
             <div>
-              <Link href={`https://x.com/${record.username}`} target="_blank">
+              <Link href={record.x_url || `https://x.com/${record.username}`} target="_blank">
                 @{record.username}
               </Link>
               {record.is_vsc && (
@@ -492,6 +504,7 @@ export default function CreatorsPage() {
             username: '',
             display_name: '',
             avatar_url: '',
+            x_url: '',
             xiaohongshu_url: '',
             description: '',
             is_active: true,
@@ -507,7 +520,10 @@ export default function CreatorsPage() {
             ]}
             extra="输入用户名，如：@midjourney 或 midjourney"
           >
-            <Input placeholder="@midjourney" disabled={!!editingCreator} />
+            <Input 
+              placeholder="@midjourney" 
+              onChange={handleUsernameChange}
+            />
           </Form.Item>
 
           <Form.Item
@@ -523,6 +539,15 @@ export default function CreatorsPage() {
             rules={[{ type: 'url', message: '请输入有效的图片链接' }]}
           >
             <Input placeholder="https://..." />
+          </Form.Item>
+
+          <Form.Item
+            label="X/Twitter 主页"
+            name="x_url"
+            rules={[{ type: 'url', message: '请输入有效的链接' }]}
+            extra="根据用户名自动生成，也可手动修改"
+          >
+            <Input placeholder="https://x.com/midjourney" />
           </Form.Item>
 
           <Form.Item
