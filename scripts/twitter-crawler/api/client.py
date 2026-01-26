@@ -17,6 +17,17 @@ class Creator:
     last_tweet_id: Optional[str]
 
 
+@dataclass
+class CreatePromptResult:
+    success: bool
+    skipped: bool = False
+    reason: Optional[str] = None
+    prompt_id: Optional[str] = None
+    images_count: int = 0
+    failed_urls: Optional[List[str]] = None
+    error: Optional[str] = None
+
+
 class BotApiClient:
     def __init__(self):
         # 去掉末尾斜杠，避免 URL 拼接问题
@@ -56,8 +67,8 @@ class BotApiClient:
         negative_prompt: Optional[str] = None,
         model: Optional[str] = None,
         description: Optional[str] = None,
-    ) -> dict:
-        """创建提示词"""
+    ) -> CreatePromptResult:
+        """创建提示词，支持去重检测和图片失败记录"""
         payload = {
             'title': title,
             'prompt_text': prompt_text,
@@ -79,8 +90,44 @@ class BotApiClient:
             f"{self.base_url}/api/bot/prompts",
             json=payload
         )
+        
+        data = response.json()
+        
+        # 处理 200 响应 (可能是跳过重复)
+        if response.status_code == 200:
+            if data.get('skipped'):
+                return CreatePromptResult(
+                    success=False,
+                    skipped=True,
+                    reason=data.get('reason', 'duplicate'),
+                )
+            return CreatePromptResult(
+                success=data.get('success', False),
+                prompt_id=data.get('prompt', {}).get('id'),
+                images_count=data.get('images_count', 0),
+                failed_urls=data.get('failed_urls'),
+            )
+        
+        # 处理 201 响应 (成功创建)
+        if response.status_code == 201:
+            return CreatePromptResult(
+                success=True,
+                prompt_id=data.get('prompt', {}).get('id'),
+                images_count=data.get('images_count', 0),
+                failed_urls=data.get('failed_urls'),
+            )
+        
+        # 处理 400 响应 (图片全部失败等)
+        if response.status_code == 400:
+            return CreatePromptResult(
+                success=False,
+                error=data.get('error'),
+                failed_urls=data.get('failed_urls'),
+            )
+        
+        # 其他错误
         response.raise_for_status()
-        return response.json()
+        return CreatePromptResult(success=False, error='Unknown error')
 
     def update_creator_status(
         self,

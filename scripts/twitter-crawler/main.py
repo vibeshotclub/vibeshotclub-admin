@@ -85,6 +85,8 @@ def main():
         'tweets_analyzed': 0,
         'tweets_relevant': 0,
         'prompts_created': 0,
+        'duplicates_skipped': 0,
+        'images_failed': 0,
         'errors': 0
     }
 
@@ -130,14 +132,26 @@ def main():
                                 model=analysis.suggested_model,
                                 description=f"来源: {tweet.url}"
                             )
-                            stats['prompts_created'] += 1
-                            logger.info(f"  Created prompt: {result.get('prompt', {}).get('id')}")
-
-                            # 更新成功计数
-                            api.update_creator_status(
-                                creator_id=creator.id,
-                                increment_success=True
-                            )
+                            
+                            if result.success:
+                                stats['prompts_created'] += 1
+                                logger.info(f"  Created prompt: {result.prompt_id}")
+                                
+                                # 更新成功计数
+                                api.update_creator_status(
+                                    creator_id=creator.id,
+                                    increment_success=True
+                                )
+                            elif result.skipped:
+                                stats['duplicates_skipped'] += 1
+                                logger.info(f"  Skipped duplicate: {tweet.id}")
+                            else:
+                                # 图片处理失败等情况
+                                stats['images_failed'] += 1
+                                logger.warning(f"  Failed to create prompt: {result.error}")
+                                if result.failed_urls:
+                                    logger.warning(f"    Failed URLs: {result.failed_urls}")
+                                    
                         except Exception as e:
                             logger.error(f"  Failed to create prompt: {e}")
                             stats['errors'] += 1
@@ -171,6 +185,8 @@ def main():
     logger.info(f"  Tweets analyzed: {stats['tweets_analyzed']}")
     logger.info(f"  Relevant tweets: {stats['tweets_relevant']}")
     logger.info(f"  Prompts created: {stats['prompts_created']}")
+    logger.info(f"  Duplicates skipped: {stats['duplicates_skipped']}")
+    logger.info(f"  Images failed: {stats['images_failed']}")
     logger.info(f"  Errors: {stats['errors']}")
 
 
