@@ -201,3 +201,33 @@ export interface TwitterCreatorFormData {
   is_active: boolean
   is_vsc: boolean
 }
+
+// 首页视频
+export type VideoOrientation = 'portrait' | 'landscape'
+
+export interface HomepageVideo {
+  id: string
+  title: string | null
+  description: string | null
+  video_url: string
+  thumbnail_url: string | null
+  orientation: VideoOrientation
+  original_width: number | null
+  original_height: number | null
+  processed_width: number | null
+  processed_height: number | null
+  duration: number
+  file_size: number | null
+  mime_type: string | null
+  sort_order: number
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export interface HomepageVideoFormData {
+  title?: string
+  description?: string
+  orientation: VideoOrientation
+  is_active: boolean
+}

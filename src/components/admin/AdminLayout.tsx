@@ -15,6 +15,7 @@ import {
   MenuUnfoldOutlined,
   XOutlined,
   TeamOutlined,
+  VideoCameraOutlined,
 } from '@ant-design/icons'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -60,6 +61,11 @@ const menuItems = [
     key: '/creators-showcase',
     icon: <TeamOutlined />,
     label: <Link href="/creators-showcase">创作者展示</Link>,
+  },
+  {
+    key: '/homepage-videos',
+    icon: <VideoCameraOutlined />,
+    label: <Link href="/homepage-videos">首页视频</Link>,
   },
 ]
 
