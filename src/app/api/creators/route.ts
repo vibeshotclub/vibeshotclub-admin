@@ -50,10 +50,6 @@ export async function POST(request: NextRequest) {
 
     const { username, display_name, avatar_url, x_url, xiaohongshu_url, description, is_active, is_vsc } = body
 
-    if (!username?.trim()) {
-      return NextResponse.json({ error: 'username 为必填项' }, { status: 400 })
-    }
-
     // 清理用户名 (移除 @ 符号)
     const cleanUsername = username.trim().replace(/^@/, '')
     

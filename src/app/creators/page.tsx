@@ -283,14 +283,18 @@ export default function CreatorsPage() {
           <Avatar src={record.avatar_url} icon={<XOutlined />} />
           <div>
             <div>
-              <Link href={record.x_url || `https://x.com/${record.username}`} target="_blank">
-                @{record.username}
-              </Link>
+              {record.username ? (
+                <Link href={record.x_url || `https://x.com/${record.username}`} target="_blank">
+                  @{record.username}
+                </Link>
+              ) : (
+                <Text>{record.display_name || '未知用户'}</Text>
+              )}
               {record.is_vsc && (
                 <Tag color="purple" style={{ marginLeft: 8, fontSize: 10 }}>VSC</Tag>
               )}
             </div>
-            {record.display_name && (
+            {record.username && record.display_name && (
               <Text type="secondary" style={{ fontSize: 12 }}>
                 {record.display_name}
               </Text>
@@ -515,7 +519,7 @@ export default function CreatorsPage() {
             label="Twitter 用户名"
             name="username"
             rules={[
-              { required: true, message: '请输入用户名' },
+              { message: '请输入用户名' },
               { pattern: /^@?[A-Za-z0-9_]+$/, message: '用户名格式不正确' },
             ]}
             extra="输入用户名，如：@midjourney 或 midjourney"
