@@ -51,22 +51,24 @@ export async function POST(request: NextRequest) {
     const { username, display_name, avatar_url, x_url, xiaohongshu_url, description, is_active, is_vsc } = body
 
     // 清理用户名 (移除 @ 符号)
-    const cleanUsername = username.trim().replace(/^@/, '')
-    
+    const cleanUsername = username?.trim() ? username.trim().replace(/^@/, '') : null
+
     // 自动生成 x_url
-    const finalXUrl = x_url?.trim() || `https://x.com/${cleanUsername}`
+    const finalXUrl = x_url?.trim() || (cleanUsername ? `https://x.com/${cleanUsername}` : null)
 
     const supabase = await createAdminClient()
 
     // 检查是否已存在
-    const { data: existing } = await supabase
-      .from('twitter_creators')
-      .select('id')
-      .eq('username', cleanUsername)
-      .single()
+    if (cleanUsername) {
+      const { data: existing } = await supabase
+        .from('twitter_creators')
+        .select('id')
+        .eq('username', cleanUsername)
+        .single()
 
-    if (existing) {
-      return NextResponse.json({ error: '该创作者已存在' }, { status: 400 })
+      if (existing) {
+        return NextResponse.json({ error: '该创作者已存在' }, { status: 400 })
+      }
     }
 
     // 获取下一个 sort_order

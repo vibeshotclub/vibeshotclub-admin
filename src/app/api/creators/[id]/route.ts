@@ -54,27 +54,25 @@ export async function PUT(
 
     const { username, display_name, avatar_url, x_url, xiaohongshu_url, description, is_active, is_vsc } = body
 
-    if (!username?.trim()) {
-      return NextResponse.json({ error: 'username 为必填项' }, { status: 400 })
-    }
-
-    const cleanUsername = username.trim().replace(/^@/, '')
+    const cleanUsername = username?.trim() ? username.trim().replace(/^@/, '') : null
     const supabase = await createAdminClient()
 
     // 检查新用户名是否已被其他创作者使用
-    const { data: existing } = await supabase
-      .from('twitter_creators')
-      .select('id')
-      .eq('username', cleanUsername)
-      .neq('id', id)
-      .single()
+    if (cleanUsername) {
+      const { data: existing } = await supabase
+        .from('twitter_creators')
+        .select('id')
+        .eq('username', cleanUsername)
+        .neq('id', id)
+        .single()
 
-    if (existing) {
-      return NextResponse.json({ error: '该用户名已被其他创作者使用' }, { status: 400 })
+      if (existing) {
+        return NextResponse.json({ error: '该用户名已被其他创作者使用' }, { status: 400 })
+      }
     }
 
     // 如果用户名变了，自动更新 x_url
-    const finalXUrl = x_url?.trim() || `https://x.com/${cleanUsername}`
+    const finalXUrl = x_url?.trim() || (cleanUsername ? `https://x.com/${cleanUsername}` : null)
 
     const { data, error } = await supabase
       .from('twitter_creators')

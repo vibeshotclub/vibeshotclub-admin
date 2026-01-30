@@ -82,7 +82,7 @@ export default function CreatorsPage() {
   const openEditModal = (creator: TwitterCreator) => {
     setEditingCreator(creator)
     form.setFieldsValue({
-      username: creator.username,
+      username: creator.username || '',
       display_name: creator.display_name || '',
       avatar_url: creator.avatar_url || '',
       x_url: creator.x_url || `https://x.com/${creator.username}`,
@@ -357,6 +357,7 @@ export default function CreatorsPage() {
               <Dropdown
                 menu={{ items: getCrawlMenuItems(record) }}
                 trigger={['click']}
+                disabled={!record.username}
               >
                 <Button 
                   size="small" 
@@ -519,7 +520,6 @@ export default function CreatorsPage() {
             label="Twitter 用户名"
             name="username"
             rules={[
-              { message: '请输入用户名' },
               { pattern: /^@?[A-Za-z0-9_]+$/, message: '用户名格式不正确' },
             ]}
             extra="输入用户名，如：@midjourney 或 midjourney"
