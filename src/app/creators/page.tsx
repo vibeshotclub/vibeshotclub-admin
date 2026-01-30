@@ -132,7 +132,7 @@ export default function CreatorsPage() {
   const handleToggleActive = async (creator: TwitterCreator) => {
     try {
       await updateCreator(creator.id, {
-        username: creator.username,
+        username: creator.username || undefined,
         display_name: creator.display_name || undefined,
         x_url: creator.x_url || undefined,
         description: creator.description || undefined,
@@ -150,7 +150,7 @@ export default function CreatorsPage() {
     setSavingDescription(true)
     try {
       await updateCreator(creator.id, {
-        username: creator.username,
+        username: creator.username || undefined,
         display_name: creator.display_name || undefined,
         x_url: creator.x_url || undefined,
         description: editingDescriptionValue || undefined,
