@@ -2,6 +2,36 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/server'
 import { verifyAdminSession } from '@/lib/utils/auth'
 
+// 检查 prompt 是否已存在（通过 prompt_text 去重）
+async function isPromptExists(
+  supabase: Awaited<ReturnType<typeof createAdminClient>>,
+  promptText: string
+): Promise<boolean> {
+  const { data } = await supabase
+    .from('prompts')
+    .select('id')
+    .eq('prompt_text', promptText.trim())
+    .limit(1)
+    .single()
+
+  return !!data
+}
+
+// 检查是否已存在相同的来源URL（通过 description 字段中的来源链接去重）
+async function isSourceUrlExists(
+  supabase: Awaited<ReturnType<typeof createAdminClient>>,
+  sourceUrl: string
+): Promise<boolean> {
+  const { data } = await supabase
+    .from('prompts')
+    .select('id')
+    .like('description', `%${sourceUrl}%`)
+    .limit(1)
+    .single()
+
+  return !!data
+}
+
 // GET - 获取提示词列表
 export async function GET(request: NextRequest) {
   try {
@@ -157,6 +187,22 @@ export async function POST(request: NextRequest) {
     }
 
     const supabase = await createAdminClient()
+
+    // 检查是否重复（通过 prompt_text）
+    if (await isPromptExists(supabase, prompt_text)) {
+      return NextResponse.json(
+        { error: '已存在相同内容的提示词' },
+        { status: 409 }
+      )
+    }
+
+    // 检查是否重复（通过来源URL，如果 description 包含 URL）
+    if (description && await isSourceUrlExists(supabase, description)) {
+      return NextResponse.json(
+        { error: '已存在相同来源的提示词' },
+        { status: 409 }
+      )
+    }
 
     // Get max sort_order
     const { data: maxSort } = await supabase

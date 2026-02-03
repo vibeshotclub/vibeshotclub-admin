@@ -120,6 +120,21 @@ async function isPromptExists(
   return !!data
 }
 
+// 检查是否已存在相同的来源URL（通过 description 字段中的来源链接去重）
+async function isSourceUrlExists(
+  supabase: Awaited<ReturnType<typeof createAdminClient>>,
+  sourceUrl: string
+): Promise<boolean> {
+  const { data } = await supabase
+    .from('prompts')
+    .select('id')
+    .like('description', `%${sourceUrl}%`)
+    .limit(1)
+    .single()
+
+  return !!data
+}
+
 // 检查失败记录是否已存在于备注中
 function isFailedRecordExists(description: string | null, tweetUrl: string): boolean {
   if (!description) return false
@@ -213,6 +228,16 @@ export async function POST(request: NextRequest) {
 
     // 提取推文 URL（从 description 中）
     const tweetUrl = description?.replace('来源: ', '') || ''
+
+    // 检查是否已存在相同的来源URL（通过 description 去重）
+    if (tweetUrl && await isSourceUrlExists(supabase, tweetUrl)) {
+      return NextResponse.json({
+        success: false,
+        skipped: true,
+        reason: 'duplicate_source',
+        message: 'Prompt with same source URL already exists',
+      }, { status: 200 })
+    }
 
     // 如果是 twitter 来源，检查该推文是否已记录为失败
     if (source === 'twitter' && author_name && tweetUrl) {

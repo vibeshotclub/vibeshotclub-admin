@@ -152,6 +152,21 @@ async function isPromptExists(
   return !!data
 }
 
+// 检查是否已存在相同的来源URL（通过 description 字段中的来源链接去重）
+async function isSourceUrlExists(
+  supabase: Awaited<ReturnType<typeof createAdminClient>>,
+  sourceUrl: string
+): Promise<boolean> {
+  const { data } = await supabase
+    .from('prompts')
+    .select('id')
+    .like('description', `%${sourceUrl}%`)
+    .limit(1)
+    .single()
+
+  return !!data
+}
+
 // POST - 手动抓取创作者推文
 export async function POST(request: NextRequest) {
   try {
@@ -287,8 +302,14 @@ export async function POST(request: NextRequest) {
 
     // 处理每条推文
     for (const tweet of tweets) {
-      // 检查是否重复
+      // 检查是否重复（通过 prompt_text）
       if (await isPromptExists(supabase, tweet.text)) {
+        stats.duplicates_skipped++
+        continue
+      }
+
+      // 检查是否重复（通过来源URL）
+      if (await isSourceUrlExists(supabase, tweet.url)) {
         stats.duplicates_skipped++
         continue
       }
