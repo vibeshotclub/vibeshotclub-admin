@@ -15,6 +15,7 @@ import {
   MenuUnfoldOutlined,
   XOutlined,
   TeamOutlined,
+  UserOutlined,
 } from '@ant-design/icons'
 import { useAuth } from '@/hooks/useAuth'
 
@@ -50,6 +51,11 @@ const menuItems = [
     key: '/reports',
     icon: <FileTextOutlined />,
     label: <Link href="/reports">日报管理</Link>,
+  },
+  {
+    key: '/users',
+    icon: <UserOutlined />,
+    label: <Link href="/users">用户管理</Link>,
   },
   {
     key: '/creators',

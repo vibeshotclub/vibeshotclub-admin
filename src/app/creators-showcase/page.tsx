@@ -52,7 +52,7 @@ function SortableCreatorCard({ creator }: { creator: TwitterCreator }) {
           border: isDragging ? '2px solid #a855f7' : '1px solid rgba(168, 85, 247, 0.2)',
           borderRadius: 12,
         }}
-        bodyStyle={{ padding: 16 }}
+        styles={{ body: { padding: 16 } }}
       >
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
           {/* 拖拽手柄 */}

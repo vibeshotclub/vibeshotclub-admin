@@ -1,5 +1,5 @@
 export type PromptSource = 'manual' | 'wechat' | 'twitter'
-export type UserRole = 'guest' | 'member' | 'creator' | 'admin'
+export type UserRole = 'user' | 'vsc_member'
 
 // 标签组/分类
 export interface TagType {
@@ -70,15 +70,26 @@ export interface User {
   id: string
   wechat_openid: string | null
   phone: string | null
+  email: string | null
+  username: string | null
   nickname: string | null
   avatar_url: string | null
-  role: UserRole
+  roles: string[]
+  is_vsc: boolean
   level: number
   points_balance: number
   points_total: number
   membership_expires_at: string | null
   created_at: string
   updated_at: string
+}
+
+export interface UserFormData {
+  username?: string
+  email?: string
+  roles: string[]
+  is_vsc: boolean
+  membership_expires_at?: string | null
 }
 
 // API Response Types
