@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/server'
 import { verifyAdminSession } from '@/lib/utils/auth'
+import { deleteFromR2, getKeyFromUrl } from '@/lib/r2/client'
 
 // GET - 获取单个提示词
 export async function GET(
@@ -103,6 +104,12 @@ export async function PUT(
 
     const supabase = await createAdminClient()
 
+    // 获取旧图片信息以便清理 R2
+    const { data: oldImages } = await supabase
+      .from('prompt_images')
+      .select('image_url, thumbnail_url')
+      .eq('prompt_id', id)
+
     // Use first image as cover
     const coverImage = imageList[0]
 
@@ -159,6 +166,37 @@ export async function PUT(
       await supabase.from('prompt_images').insert(imageRecords)
     }
 
+    // 清理 R2 中不再使用的图片
+    if (oldImages && oldImages.length > 0) {
+      const newUrls = new Set(imageList.map((img: any) => img.image_url))
+      const newThumbUrls = new Set(imageList.map((img: any) => img.thumbnail_url).filter(Boolean))
+
+      for (const oldImg of oldImages) {
+        // 如果旧图片不在新列表中，则删除
+        if (oldImg.image_url && !newUrls.has(oldImg.image_url)) {
+          const key = getKeyFromUrl(oldImg.image_url)
+          if (key) {
+            try {
+              await deleteFromR2(key)
+            } catch (err) {
+              console.error(`Failed to delete old image from R2: ${oldImg.image_url}`, err)
+            }
+          }
+        }
+        // 如果旧缩略图不在新列表中，则删除
+        if (oldImg.thumbnail_url && !newThumbUrls.has(oldImg.thumbnail_url)) {
+          const key = getKeyFromUrl(oldImg.thumbnail_url)
+          if (key) {
+            try {
+              await deleteFromR2(key)
+            } catch (err) {
+              console.error(`Failed to delete old thumbnail from R2: ${oldImg.thumbnail_url}`, err)
+            }
+          }
+        }
+      }
+    }
+
     return NextResponse.json({ prompt })
   } catch (error) {
     console.error('Update prompt error:', error)
@@ -180,11 +218,45 @@ export async function DELETE(
     const { id } = await params
     const supabase = await createAdminClient()
 
+    // 获取图片信息以便删除 R2 文件
+    const { data: images } = await supabase
+      .from('prompt_images')
+      .select('image_url, thumbnail_url')
+      .eq('prompt_id', id)
+
     // prompt_images will be deleted automatically via ON DELETE CASCADE
     const { error } = await supabase.from('prompts').delete().eq('id', id)
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    // 删除 R2 中的图片文件
+    if (images && images.length > 0) {
+      for (const img of images) {
+        // 删除原图
+        if (img.image_url) {
+          const key = getKeyFromUrl(img.image_url)
+          if (key) {
+            try {
+              await deleteFromR2(key)
+            } catch (err) {
+              console.error(`Failed to delete image from R2: ${img.image_url}`, err)
+            }
+          }
+        }
+        // 删除缩略图
+        if (img.thumbnail_url) {
+          const key = getKeyFromUrl(img.thumbnail_url)
+          if (key) {
+            try {
+              await deleteFromR2(key)
+            } catch (err) {
+              console.error(`Failed to delete thumbnail from R2: ${img.thumbnail_url}`, err)
+            }
+          }
+        }
+      }
     }
 
     return NextResponse.json({ success: true })
