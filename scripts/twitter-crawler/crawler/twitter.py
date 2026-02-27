@@ -1,4 +1,5 @@
 import httpx
+import json
 import logging
 from typing import List, Optional
 from dataclasses import dataclass
@@ -24,6 +25,28 @@ class Tweet:
     url: str
 
 
+def _find_rest_id(data, depth: int = 0) -> Optional[str]:
+    """递归搜索 JSON 中的 rest_id 字段"""
+    if depth > 8 or data is None:
+        return None
+    if isinstance(data, dict):
+        if 'rest_id' in data:
+            return str(data['rest_id'])
+        if 'id_str' in data and data.get('__typename') == 'User':
+            return str(data['id_str'])
+        for key, val in data.items():
+            if isinstance(val, (dict, list)):
+                found = _find_rest_id(val, depth + 1)
+                if found:
+                    return found
+    elif isinstance(data, list):
+        for item in data:
+            found = _find_rest_id(item, depth + 1)
+            if found:
+                return found
+    return None
+
+
 class TwitterCrawler:
     """使用 RapidAPI Twttr API (twitter241) 抓取推文"""
 
@@ -47,32 +70,56 @@ class TwitterCrawler:
             return self._user_id_cache[username]
 
         response = self.client.get(
-            f"{self.base_url}/user-media",
+            f"{self.base_url}/user",
             params={'username': username}
         )
-
-        # 尝试用专门的用户信息接口
-        # 注意: Get User By Username 的 curl 显示 URL 是 /user-media
-        # 但也可能有独立端点，先试 /user-media 不行再回退
-        if response.status_code != 200:
-            # 回退: 尝试其他可能的端点
-            response = self.client.get(
-                f"{self.base_url}/user",
-                params={'username': username}
-            )
-
         response.raise_for_status()
         data = response.json()
 
-        # 解析 user ID: data > user > result > rest_id
+        # 打印返回数据前 800 字符，帮助调试 JSON 结构
+        raw = json.dumps(data, ensure_ascii=False)[:800]
+        logger.info(f"  /user response for @{username}: {raw}")
+
+        # 尝试多种可能的 JSON 路径提取 rest_id
+        rest_id = None
+
+        # 路径1: data > user > result > rest_id
         try:
-            rest_id = data.get('user', {}).get('result', {}).get('rest_id')
-            if rest_id:
-                self._user_id_cache[username] = rest_id
-                logger.debug(f"  Resolved @{username} -> user_id: {rest_id}")
-                return rest_id
-        except Exception:
+            rest_id = data['user']['result']['rest_id']
+        except (KeyError, TypeError):
             pass
+
+        # 路径2: data > result > rest_id
+        if not rest_id:
+            try:
+                rest_id = data['result']['rest_id']
+            except (KeyError, TypeError):
+                pass
+
+        # 路径3: data > data > user > result > rest_id
+        if not rest_id:
+            try:
+                rest_id = data['data']['user']['result']['rest_id']
+            except (KeyError, TypeError):
+                pass
+
+        # 路径4: data > rest_id
+        if not rest_id:
+            rest_id = data.get('rest_id')
+
+        # 路径5: data > id_str 或 data > id
+        if not rest_id:
+            rest_id = data.get('id_str') or data.get('id')
+
+        # 路径6: 递归搜索整个 JSON
+        if not rest_id:
+            rest_id = _find_rest_id(data)
+
+        if rest_id:
+            rest_id = str(rest_id)
+            self._user_id_cache[username] = rest_id
+            logger.info(f"  Resolved @{username} -> user_id: {rest_id}")
+            return rest_id
 
         logger.warning(f"  Could not resolve user_id for @{username}")
         return None
@@ -106,10 +153,8 @@ class TwitterCrawler:
         for entry in entries:
             tweet = self._parse_tweet(entry, username)
             if tweet:
-                # 增量抓取: 跳过已处理的推文
                 if since_id and tweet.id <= since_id:
                     continue
-                # 只保留有图片的推文
                 if tweet.image_urls:
                     tweets.append(tweet)
 
@@ -151,6 +196,7 @@ class TwitterCrawler:
         """从 GraphQL 响应中提取 tweet entries"""
         entries = []
         try:
+            # 尝试路径: data > result > timeline > instructions
             result = data.get('result', {})
             timeline = result.get('timeline', {})
             instructions = timeline.get('instructions', [])
@@ -159,15 +205,24 @@ class TwitterCrawler:
                 inst_type = instruction.get('type', '')
                 if inst_type == 'TimelineAddEntries':
                     for entry in instruction.get('entries', []):
-                        entry_type = entry.get('type', '')
-                        # 只取推文 entry，跳过 cursor entry
-                        if entry_type == 'TimelinePinEntry' or 'tweet' in entry.get('entryId', '').lower():
+                        entry_id = entry.get('entryId', '').lower()
+                        if 'tweet' in entry_id or 'pin' in entry_id:
                             entries.append(entry)
-                        elif entry_type == 'TimelineTimelineItem':
+
+            # 备选路径: data > timeline > instructions
+            if not entries:
+                timeline2 = data.get('timeline', {})
+                instructions2 = timeline2.get('instructions', [])
+                for instruction in instructions2:
+                    for entry in instruction.get('entries', []):
+                        entry_id = entry.get('entryId', '').lower()
+                        if 'tweet' in entry_id or 'pin' in entry_id:
                             entries.append(entry)
+
         except Exception as e:
-            if Config.DEBUG:
-                logger.debug(f"Error extracting entries: {e}")
+            logger.debug(f"Error extracting entries: {e}")
+
+        logger.debug(f"  Extracted {len(entries)} tweet entries")
         return entries
 
     def _extract_cursor(self, data: dict) -> Optional[str]:
@@ -176,13 +231,13 @@ class TwitterCrawler:
             result = data.get('result', {})
             timeline = result.get('timeline', {})
 
-            # 方法1: 从 cursor 字段直接获取
+            # 方法1: cursor 字段
             cursors = timeline.get('cursor', {})
             bottom = cursors.get('bottom')
             if bottom:
                 return bottom
 
-            # 方法2: 从 instructions > entries 中找 cursor entry
+            # 方法2: 从 entries 中找 cursor-bottom
             instructions = timeline.get('instructions', [])
             for instruction in instructions:
                 if instruction.get('type') == 'TimelineAddEntries':
@@ -190,23 +245,28 @@ class TwitterCrawler:
                         entry_id = entry.get('entryId', '')
                         if 'cursor-bottom' in entry_id:
                             content = entry.get('content', {})
-                            return content.get('value') or content.get('cursorType', {}).get('value')
+                            value = content.get('value')
+                            if value:
+                                return value
+                            item_content = content.get('itemContent', {})
+                            return item_content.get('value')
+
+            # 方法3: data > timeline > cursor
+            timeline2 = data.get('timeline', {})
+            cursors2 = timeline2.get('cursor', {})
+            return cursors2.get('bottom')
+
         except Exception as e:
-            if Config.DEBUG:
-                logger.debug(f"Error extracting cursor: {e}")
+            logger.debug(f"Error extracting cursor: {e}")
         return None
 
     def _parse_tweet(self, entry: dict, username: str) -> Optional[Tweet]:
         """解析单条推文（Twitter GraphQL 格式）"""
         try:
-            # GraphQL entry 结构:
-            # entry > content > itemContent > tweet_results > result > legacy
-            # 或直接就是 tweet_results 结构
             tweet_result = self._get_tweet_result(entry)
             if not tweet_result:
                 return None
 
-            # 获取 legacy 数据（包含推文核心信息）
             legacy = tweet_result.get('legacy', {})
             if not legacy:
                 return None
@@ -216,11 +276,9 @@ class TwitterCrawler:
                 return None
 
             # 跳过转推
-            retweeted = legacy.get('retweeted_status_result')
-            if retweeted:
+            if legacy.get('retweeted_status_result'):
                 return None
 
-            # 获取文本
             text = legacy.get('full_text', '') or legacy.get('text', '')
 
             # 获取图片 URL
@@ -239,7 +297,6 @@ class TwitterCrawler:
             creation_date = legacy.get('created_at')
             if creation_date:
                 try:
-                    # 格式: "Tue Jan 06 14:54:38 +0000 2026"
                     created_at = datetime.strptime(creation_date, '%a %b %d %H:%M:%S %z %Y')
                 except Exception:
                     pass
@@ -272,12 +329,11 @@ class TwitterCrawler:
             tweet_results = item_content.get('tweet_results', {})
             result = tweet_results.get('result', {})
             if result:
-                # 如果是 TweetWithVisibilityResults，再取一层
                 if result.get('__typename') == 'TweetWithVisibilityResults':
                     result = result.get('tweet', {})
                 return result if result.get('legacy') else None
 
-            # 路径2: entry 本身就是 tweet_results 结构
+            # 路径2: entry > tweet_results > result
             tweet_results = entry.get('tweet_results', {})
             result = tweet_results.get('result', {})
             if result:
