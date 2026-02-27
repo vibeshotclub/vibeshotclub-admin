@@ -46,9 +46,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: '未授权' }, { status: 401 })
     }
 
-    const body: TwitterCreatorFormData = await request.json()
+    const body: TwitterCreatorFormData & { auto_crawl?: boolean } = await request.json()
 
-    const { username, display_name, avatar_url, x_url, xiaohongshu_url, description, is_active, is_vsc } = body
+    const { username, display_name, avatar_url, x_url, xiaohongshu_url, description, is_active, is_vsc, auto_crawl } = body
 
     // 清理用户名 (移除 @ 符号)
     const cleanUsername = username?.trim() ? username.trim().replace(/^@/, '') : null
@@ -101,7 +101,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    return NextResponse.json({ creator: data }, { status: 201 })
+    // 返回创建的创作者，以及是否需要自动抓取的标志
+    return NextResponse.json({ 
+      creator: data, 
+      should_auto_crawl: auto_crawl !== false && !!cleanUsername // 默认开启自动抓取
+    }, { status: 201 })
   } catch (error) {
     console.error('Create creator error:', error)
     return NextResponse.json({ error: '创建创作者失败' }, { status: 500 })

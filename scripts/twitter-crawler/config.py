@@ -40,7 +40,7 @@ class Config:
     REQUEST_DELAY = 2  # 请求间隔 (秒)
 
     # AI 判断阈值
-    RELEVANCE_THRESHOLD = 0.7  # 相关性阈值
+    RELEVANCE_THRESHOLD = 0.8  # 提高相关性阈值，减少误判
 
     # Debug
     DEBUG = os.getenv('DEBUG', 'false').lower() == 'true'

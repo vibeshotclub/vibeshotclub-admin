@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Table,
   Button,
@@ -20,6 +20,7 @@ import {
   Dropdown,
   Spin,
   Popover,
+  Progress,
 } from 'antd'
 import {
   PlusOutlined,
@@ -29,6 +30,9 @@ import {
   DownOutlined,
   SyncOutlined,
   SaveOutlined,
+  CheckCircleOutlined,
+  CloseCircleOutlined,
+  LoadingOutlined,
 } from '@ant-design/icons'
 import type { ColumnsType } from 'antd/es/table'
 import type { MenuProps } from 'antd'
@@ -45,6 +49,24 @@ dayjs.locale('zh-cn')
 const { Text, Link } = Typography
 const { TextArea } = Input
 
+// 抓取状态类型
+interface CrawlStatus {
+  phase: 'fetching' | 'analyzing' | 'processing' | 'done' | 'error'
+  message: string
+  progress?: number
+}
+
+// 抓取结果类型
+interface CrawlResult {
+  tweets_found: number
+  tweets_analyzed: number
+  tweets_relevant: number
+  prompts_created: number
+  duplicates_skipped: number
+  ai_filtered: number
+  images_failed: number
+}
+
 export default function CreatorsPage() {
   const { message } = App.useApp()
   const { creators, isLoading, createCreator, updateCreator, deleteCreator, mutate } = useCreators()
@@ -56,6 +78,7 @@ export default function CreatorsPage() {
 
   // 手动抓取相关状态
   const [crawlingCreatorId, setCrawlingCreatorId] = useState<string | null>(null)
+  const [crawlStatus, setCrawlStatus] = useState<CrawlStatus | null>(null)
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null)
   const [datePickerOpen, setDatePickerOpen] = useState<string | null>(null)
 
@@ -63,6 +86,9 @@ export default function CreatorsPage() {
   const [editingDescriptionId, setEditingDescriptionId] = useState<string | null>(null)
   const [editingDescriptionValue, setEditingDescriptionValue] = useState<string>('')
   const [savingDescription, setSavingDescription] = useState(false)
+
+  // 新建创作者后自动抓取的状态
+  const [newCreatorCrawling, setNewCreatorCrawling] = useState<string | null>(null)
 
   const openCreateModal = () => {
     setEditingCreator(null)
@@ -75,6 +101,7 @@ export default function CreatorsPage() {
       description: '',
       is_active: true,
       is_vsc: false,
+      auto_crawl: true, // 默认开启自动抓取
     })
     setIsModalOpen(true)
   }
@@ -102,15 +129,28 @@ export default function CreatorsPage() {
     }
   }
 
-  const handleSubmit = async (values: TwitterCreatorFormData) => {
+  const handleSubmit = async (values: TwitterCreatorFormData & { auto_crawl?: boolean }) => {
     setIsSubmitting(true)
     try {
       if (editingCreator) {
         await updateCreator(editingCreator.id, values)
         message.success('创作者更新成功')
       } else {
-        await createCreator(values)
+        // 创建新创作者
+        const { creator, should_auto_crawl } = await createCreator(values)
         message.success('创作者添加成功')
+        
+        // 如果需要自动抓取
+        if (should_auto_crawl && creator.username) {
+          setIsModalOpen(false)
+          setNewCreatorCrawling(creator.id)
+          
+          // 延迟一下再开始抓取，让用户看到创建成功的提示
+          setTimeout(() => {
+            handleManualCrawl(creator, dayjs().subtract(30, 'day').startOf('day'), true)
+          }, 500)
+          return
+        }
       }
       setIsModalOpen(false)
     } catch (error) {
@@ -167,9 +207,14 @@ export default function CreatorsPage() {
   }
 
   // 手动抓取功能
-  const handleManualCrawl = async (creator: TwitterCreator, sinceDate: Dayjs) => {
-    setCrawlingCreatorId(creator.id)
+  const handleManualCrawl = async (creator: TwitterCreator, sinceDate: Dayjs, isNewCreator = false) => {
+    if (isNewCreator) {
+      setNewCreatorCrawling(creator.id)
+    } else {
+      setCrawlingCreatorId(creator.id)
+    }
     setDatePickerOpen(null)
+    setCrawlStatus({ phase: 'fetching', message: '正在获取推文...' })
     
     try {
       const response = await fetch('/api/creators/crawl', {
@@ -184,25 +229,75 @@ export default function CreatorsPage() {
         }),
       })
 
-      const result = await response.json()
+      const result: CrawlResult & { error?: string; detail?: string; action_url?: string } = await response.json()
 
       if (!response.ok) {
+        // 显示详细错误信息
+        let errorMsg = result.error || '抓取失败'
+        if (result.detail) {
+          errorMsg += `\n${result.detail}`
+        }
+        
+        // 如果有操作链接，用 Modal 显示更详细的信息
+        if (result.action_url) {
+          Modal.error({
+            title: result.error || '抓取失败',
+            content: (
+              <div>
+                <p>{result.detail}</p>
+                <p style={{ marginTop: 12 }}>
+                  <a href={result.action_url} target="_blank" rel="noopener noreferrer">
+                    点击前往 RapidAPI 控制台 →
+                  </a>
+                </p>
+              </div>
+            ),
+            okText: '我知道了',
+          })
+        } else {
+          message.error(errorMsg)
+        }
+        
         throw new Error(result.error || '抓取失败')
       }
 
-      message.success(
-        `抓取完成: 发现 ${result.tweets_found} 条推文, 入库 ${result.prompts_created} 条` +
-        (result.duplicates_skipped > 0 ? `, 跳过重复 ${result.duplicates_skipped} 条` : '') +
-        (result.images_failed > 0 ? `, 图片失败 ${result.images_failed} 条` : '')
-      )
+      setCrawlStatus({ phase: 'done', message: '抓取完成!' })
+
+      // 构建详细的结果消息
+      const parts: string[] = []
+      parts.push(`发现 ${result.tweets_found} 条推文`)
+      if (result.tweets_analyzed > 0) {
+        parts.push(`AI分析 ${result.tweets_analyzed} 条`)
+      }
+      if (result.tweets_relevant > 0) {
+        parts.push(`相关 ${result.tweets_relevant} 条`)
+      }
+      parts.push(`入库 ${result.prompts_created} 条`)
+      if (result.duplicates_skipped > 0) {
+        parts.push(`跳过重复 ${result.duplicates_skipped} 条`)
+      }
+      if (result.ai_filtered > 0) {
+        parts.push(`AI过滤 ${result.ai_filtered} 条`)
+      }
+      if (result.images_failed > 0) {
+        parts.push(`图片失败 ${result.images_failed} 条`)
+      }
+      
+      message.success(`抓取完成: ${parts.join(', ')}`)
       
       // 刷新列表
       mutate()
     } catch (error) {
+      setCrawlStatus({ phase: 'error', message: (error as Error).message })
       message.error((error as Error).message)
     } finally {
-      setCrawlingCreatorId(null)
-      setSelectedDate(null)
+      // 延迟清除状态，让用户看到结果
+      setTimeout(() => {
+        setCrawlingCreatorId(null)
+        setNewCreatorCrawling(null)
+        setCrawlStatus(null)
+        setSelectedDate(null)
+      }, 2000)
     }
   }
 
@@ -239,6 +334,27 @@ export default function CreatorsPage() {
       },
     ]
     return presets
+  }
+
+  // 渲染抓取状态
+  const renderCrawlStatus = (creatorId: string) => {
+    const isCrawling = crawlingCreatorId === creatorId || newCreatorCrawling === creatorId
+    if (!isCrawling) return null
+
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        {crawlStatus?.phase === 'done' ? (
+          <CheckCircleOutlined style={{ color: '#52c41a' }} />
+        ) : crawlStatus?.phase === 'error' ? (
+          <CloseCircleOutlined style={{ color: '#ff4d4f' }} />
+        ) : (
+          <LoadingOutlined style={{ color: '#1890ff' }} />
+        )}
+        <Text type="secondary" style={{ fontSize: 12 }}>
+          {crawlStatus?.message || '准备中...'}
+        </Text>
+      </div>
+    )
   }
 
   // 备注编辑弹出框内容
@@ -299,6 +415,8 @@ export default function CreatorsPage() {
                 {record.display_name}
               </Text>
             )}
+            {/* 新建创作者抓取状态 */}
+            {newCreatorCrawling === record.id && renderCrawlStatus(record.id)}
           </div>
         </Space>
       ),
@@ -347,21 +465,24 @@ export default function CreatorsPage() {
     {
       title: '手动抓取',
       key: 'manual_crawl',
-      width: 140,
+      width: 160,
       render: (_, record) => (
-        <Space>
+        <Space direction="vertical" size={4} style={{ width: '100%' }}>
           {crawlingCreatorId === record.id ? (
-            <Spin size="small" />
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+              {renderCrawlStatus(record.id)}
+            </div>
           ) : (
             <>
               <Dropdown
                 menu={{ items: getCrawlMenuItems(record) }}
                 trigger={['click']}
-                disabled={!record.username}
+                disabled={!record.username || newCreatorCrawling === record.id}
               >
                 <Button 
                   size="small" 
                   icon={<SyncOutlined />}
+                  loading={newCreatorCrawling === record.id}
                 >
                   抓取 <DownOutlined />
                 </Button>
@@ -514,6 +635,7 @@ export default function CreatorsPage() {
             description: '',
             is_active: true,
             is_vsc: false,
+            auto_crawl: true,
           }}
         >
           <Form.Item
@@ -585,6 +707,18 @@ export default function CreatorsPage() {
           >
             <Switch />
           </Form.Item>
+
+          {/* 新建时显示自动抓取选项 */}
+          {!editingCreator && (
+            <Form.Item
+              label="自动抓取近30天内容"
+              name="auto_crawl"
+              valuePropName="checked"
+              tooltip="创建后自动抓取该创作者近30天的推文并进行AI分析入库"
+            >
+              <Switch />
+            </Form.Item>
+          )}
 
           <Form.Item style={{ marginBottom: 0, marginTop: 24, textAlign: 'right' }}>
             <Space>

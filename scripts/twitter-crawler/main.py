@@ -118,6 +118,11 @@ def main():
                     analysis = analyzer.analyze_tweet(tweet)
 
                     if analysis.is_relevant and analysis.confidence >= Config.RELEVANCE_THRESHOLD:
+                        # 额外检查：如果没有提取到 prompt，且原文也不像 prompt，则跳过
+                        if not analysis.extracted_prompt and not any(kw in tweet.text.lower() for kw in ['--', 'prompt', 'negative', 'artstation', 'detailed']):
+                            logger.info(f"  Skipped ambiguous tweet: {tweet.id}")
+                            continue
+
                         stats['tweets_relevant'] += 1
                         logger.info(f"  Relevant tweet found: {tweet.id}")
 

@@ -9,7 +9,7 @@ export function useCreators(sortBy: 'created_at' | 'sort_order' = 'created_at') 
   const url = `/api/creators?sort_by=${sortBy}`
   const { data, error, isLoading, mutate } = useSWR(url, fetcher)
 
-  const createCreator = async (formData: TwitterCreatorFormData) => {
+  const createCreator = async (formData: TwitterCreatorFormData & { auto_crawl?: boolean }): Promise<{ creator: TwitterCreator; should_auto_crawl: boolean }> => {
     const res = await fetch('/api/creators', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -19,8 +19,9 @@ export function useCreators(sortBy: 'created_at' | 'sort_order' = 'created_at') 
       const data = await res.json()
       throw new Error(data.error || '创建失败')
     }
+    const result = await res.json()
     mutate()
-    return (await res.json()).creator
+    return { creator: result.creator, should_auto_crawl: result.should_auto_crawl }
   }
 
   const updateCreator = async (id: string, formData: TwitterCreatorFormData) => {

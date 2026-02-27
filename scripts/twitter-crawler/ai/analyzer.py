@@ -20,13 +20,20 @@ class PromptAnalysis:
 
 
 # 通用的系统提示词
-SYSTEM_PROMPT = """你是一个专业的 AI 图像生成提示词分析专家。你的任务是判断 Twitter 推文是否包含 AI 图像生成的提示词 (prompt)。
+SYSTEM_PROMPT = """你是一个专业的 AI 图像生成提示词分析专家。你的任务是严格判断 Twitter 推文是否包含用于 AI 图像生成的提示词 (prompt)。
 
-判断标准:
-1. 推文必须包含用于 AI 图像生成工具 (如 Midjourney, DALL-E, Stable Diffusion, Flux, ComfyUI 等) 的提示词
-2. 提示词通常是英文，包含描述性的图像描述、风格、参数等
-3. 可能包含模型参数如 --ar, --v, --style 等
-4. 必须有配图 (图片已确认存在)
+判断标准 (必须全部满足):
+1. 推文必须明确包含用于 AI 图像生成工具 (如 Midjourney, DALL-E, Stable Diffusion, Flux, ComfyUI, NovelAI 等) 的具体提示词。
+2. 提示词通常是英文，包含具体的描述性词汇、艺术风格、光效描述或技术参数。
+3. 必须包含 AI 专有的特征，例如：
+   - 模型参数: --ar, --v, --style, --s, --stylize, --niji 等。
+   - 负向提示词标签: Negative prompt, Undesired content 等。
+   - 提示词权重符号: (word:1.2), [word], {word} 等。
+   - 明确的 AI 模型引用: "Created with Flux", "Midjourney prompt:", "Stable Diffusion tag" 等。
+4. 排除项 (即使包含以下内容也不视为相关):
+   - 纯粹的推文描述 (如 "Today's sunset is beautiful")。
+   - 仅包含标签而无提示词本体 (如 "Check out my #AIArt #Midjourney")。
+   - 链接到外部提示词网站但推文本身无提示词内容。
 
 请分析以下推文并返回 JSON 格式结果。"""
 
