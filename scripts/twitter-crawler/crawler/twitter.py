@@ -279,7 +279,25 @@ class TwitterCrawler:
             if legacy.get('retweeted_status_result'):
                 return None
 
-            text = legacy.get('full_text', '') or legacy.get('text', '')
+            # 获取文本 - 优先使用 note_tweet（长推文完整内容）
+            text = ''
+
+            # 路径1: note_tweet > note_tweet_results > result > text (长推文)
+            note_tweet = tweet_result.get('note_tweet', {})
+            note_results = note_tweet.get('note_tweet_results', {})
+            note_result = note_results.get('result', {})
+            if note_result and note_result.get('text'):
+                text = note_result['text']
+
+            # 路径2: tweet_result > note_tweet > text (备选长推文路径)
+            if not text:
+                note = tweet_result.get('note_tweet', {})
+                if isinstance(note, dict) and note.get('text'):
+                    text = note['text']
+
+            # 路径3: legacy > full_text (普通推文)
+            if not text:
+                text = legacy.get('full_text', '') or legacy.get('text', '')
 
             # 获取图片 URL
             image_urls = []
